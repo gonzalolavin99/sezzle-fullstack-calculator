@@ -1,0 +1,44 @@
+# AI Usage Log
+
+Sezzle asked candidates to share the prompts used in their work. This log records how AI tools were used,
+what they produced, and what I changed or rejected. I reviewed, ran and tested all generated code, and I can
+explain every part of it.
+
+## Tools
+- **Claude (claude.ai):** planning, requirements analysis and the initial project plan, ADRs and this harness.
+- **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md`.
+- *(Add v0 or Lovable here if used for a visual draft.)*
+
+## How I worked
+1. Turned the assignment email into `docs/REQUIREMENTS.md` with a traceability table.
+2. Wrote `CLAUDE.md` so Claude Code had context about the project, my level in Go and the working rules
+   (tests first, small commits, explain decisions, ask before big changes).
+3. Built task by task from `docs/PROJECT_PLAN.md`, reviewing each change before committing.
+
+## Log
+
+### 001 — Planning (claude.ai)
+- **Prompt (summary):** Shared the assignment email and asked for a complete, professional plan: Go backend,
+  React + TypeScript frontend, all optional features, Docker, a strong README, an architecture recommendation
+  and a step-by-step task list explained so I can learn Go while building.
+- **Output:** `CLAUDE.md`, `docs/REQUIREMENTS.md`, `docs/PROJECT_PLAN.md`, ADRs 0001–0004 and this log.
+- **My changes / decisions:** *(fill in: what I accepted, changed or rejected and why)*
+
+### 002 — Kickoff: environment check, version check, repo init and Go primer (Claude Code)
+- **Prompt (summary, original in Spanish):** Read `CLAUDE.md`, `START_HERE.md` and everything in `docs/`, plus
+  `.claude/skills` and `.claude/agents`; confirm the skills and the subagent are visible; check installed tools
+  (`go`, `node`, `npm`, `docker`, `git`, `gh`); verify current stable versions of Go, Node LTS, React, Vite and
+  Tailwind on the web and propose what to pin; summarize the plan in Spanish in at most 10 lines; run `git init`,
+  ignore `START_HERE.md` and make the first commit; give a 20-minute Go primer compared with TypeScript (packages
+  and modules, structs, interfaces, errors as values, table-driven tests) with 3 check questions. No project code yet.
+- **Output:** environment report (Go, Docker and `make` missing; Node, npm, git and gh present), version proposal
+  from go.dev, nodejs.org and the npm registry, `.gitignore` (ignores `START_HERE.md`), `.gitattributes`
+  (LF line endings, added after Git warned about CRLF conversion on Windows), first commit, Go primer in chat.
+- **Review:** Pending review.
+
+<!-- Template for each new entry:
+### NNN — Short title (tool)
+- **Prompt:** exact text, or a faithful summary for long prompts
+- **Output:** files or changes produced
+- **Review:** what I checked (tests, manual run), what I changed or rejected, and why
+-->
