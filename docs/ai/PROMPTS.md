@@ -623,6 +623,21 @@ explain every part of it.
   entered, which the phase 3 review also noted).
 - **Review:** no code change needed; the hosting question is answered with the options from ADR 0005.
 
+### 044 — R5: live demo on Vercel and Render (Claude Code + Gonzalo)
+- **Prompt (summary):** "Can it all run on Vercel? If not, give me detailed steps for Render", then the Render form, the
+  deploy log and both URLs.
+- **Output:** advice: not Vercel alone (the Go server would need rewriting as serverless functions, rejected in ADR
+  0005); backend on Render from `backend/Dockerfile` (Root Directory `backend/`, health check `/healthz`, no env vars at
+  first since Render provides `PORT`), frontend on Vercel (Root Directory `frontend`, `VITE_API_BASE_URL`), then
+  `ALLOWED_ORIGINS` on Render set to the exact Vercel origin. No code change was needed: the server already reads `PORT`
+  and `ALLOWED_ORIGINS`, and the client already reads `VITE_API_BASE_URL`. README gains a "Live demo" section and the
+  cold-start warning; ADR 0005 records the outcome.
+- **Review:** Gonzalo deployed both. Render's log showed the build, `server starting` on port 10000 and health checks
+  answering 200. This cloud session could not reach `onrender.com` or `vercel.app` (its network policy blocks them), so
+  the checks were run by Gonzalo on his machine and their output read here: `GET /api/v1/operations` lists 7 operations;
+  the CORS preflight returns 204 with `Access-Control-Allow-Origin` set to the Vercel origin; a cross-origin POST
+  returns 200 with that header and `"result":3`; in the browser `12 ÷ 4 = 3` and `5 ÷ 0` shows the 422 message.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

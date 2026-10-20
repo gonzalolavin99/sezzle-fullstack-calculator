@@ -5,6 +5,9 @@
 A calculator with a React + TypeScript frontend and a Go backend service. Every calculation goes through the REST
 API; the browser never does the math. Built as a take-home assignment.
 
+**Live demo:** https://sezzle-fullstack-calculator.vercel.app (frontend on Vercel, API on Render's free tier:
+the first request after a quiet period can take about 50 seconds while the API wakes up).
+
 ![The calculator: keypad, history with a failed division, and the request details panel](docs/images/calculator.png)
 
 **Highlights**
@@ -99,6 +102,21 @@ docker compose up --build -d --wait
 make e2e-install        # once: Chromium and the system libraries it needs
 make e2e                # opens the app, computes 12 ÷ 4 = 3, checks the 5 ÷ 0 error
 docker compose down
+```
+
+## Live demo
+
+| Part | URL | Host |
+|---|---|---|
+| App | https://sezzle-fullstack-calculator.vercel.app | Vercel, built from `frontend/` with `VITE_API_BASE_URL` set to the API |
+| API | https://sezzle-calculator-api-fcs9.onrender.com | Render free web service, built from `backend/Dockerfile` |
+
+The API allows the app's origin through `ALLOWED_ORIGINS` (CORS), as planned in
+[ADR 0005](docs/adr/0005-styling-and-deployment.md). Both redeploy on every push to `main`. The repository and
+`docker compose up` remain the source of truth; the demo is a convenience.
+
+```bash
+curl https://sezzle-calculator-api-fcs9.onrender.com/api/v1/operations
 ```
 
 ## API reference
@@ -236,7 +254,7 @@ request, and its findings and fixes are in the log too. The visual draft came fr
 - **Frontend polish:** a "retry" link when the operations list fails to load; announce a repeated identical result
   again; keep keyboard focus after dismissing an error; keep keys typed faster than the backend answers instead of
   dropping them while a request is pending.
-- **Deployment:** the optional live demo described in ADR 0005, and an unprivileged nginx image.
+- **Deployment:** a paid instance (or a keep-warm ping) so the demo API does not sleep, and an unprivileged nginx image.
 
 ## Time spent
 
