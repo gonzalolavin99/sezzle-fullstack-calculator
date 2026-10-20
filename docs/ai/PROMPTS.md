@@ -263,6 +263,26 @@ explain every part of it.
   `golang:1.27` container (nothing installed on my machine). Not added: code generators or a served Swagger UI
   (new dependencies for three routes).
 
+### 022 — Phase 2 review and pull request (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** "Run the code-reviewer, fix the Must fix items and open the Phase 2 PR."
+- **Output:** the reviewer probed the running server against every row of the error table and found no Must fix.
+  All five Should fix items were applied:
+  1. `run` had a race: the server goroutine could still write to the log after `run` returned, and the test
+     relied on `time.Sleep`. Now `net.Listen` runs synchronously (a busy port fails at once, the real address is
+     logged), and `run` waits for the serve goroutine after `Shutdown`. The sleep is gone.
+  2. The `ErrServerClosed` check was on `Shutdown`'s error, which never returns it; moved to `Serve`'s result.
+  3. The OpenAPI request schema used the operation enum and min/max operands, so a validating client would reject
+     the requests the spec documents as `UNKNOWN_OPERATION`/`INVALID_ARITY`; relaxed (the enum stays on responses).
+  4. R6, R7 and R8 marked done in the traceability table.
+  5. New `withMiddleware` in `main.go` with a test of the production order (panic → logged 500 with request ID,
+     CORS header kept on the error).
+  Also applied: `Access-Control-Expose-Headers: X-Request-ID`, clearer wording for non-numeric operands, a comment
+  stating the invariant behind the 404/405 rewrite, `make test-race` in the plan's quality table.
+- **Review:** tests and lint green, `make test-race` clean, `TestRun` repeated 20 times under `-race` without a
+  failure, YAML re-validated. The `Expose-Headers` test and its fix were written together, not red-first.
+  Left as known minor points: case-insensitive JSON keys (documented in the spec), `Recover` after headers were
+  already written.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

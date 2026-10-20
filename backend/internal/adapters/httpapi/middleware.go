@@ -110,6 +110,7 @@ func CORS(allowedOrigins []string) Middleware {
 			origin := r.Header.Get("Origin")
 			if origin != "" && slices.Contains(allowedOrigins, origin) {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Expose-Headers", "X-Request-ID")
 				w.Header().Add("Vary", "Origin")
 			}
 			// A preflight asks permission before the real request; answer it here.

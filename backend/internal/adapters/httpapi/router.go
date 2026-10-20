@@ -25,6 +25,8 @@ func NewHandler(calc *app.Calculator) http.Handler {
 // jsonRouterErrors rewrites the router's plain-text 404 and 405 responses into the API's JSON
 // error shape. A catch-all "/" route is not used for 404 because it would match every method
 // and hide the router's 405 responses.
+// It relies on one invariant: every API handler writes its responses with writeJSON, so any
+// 404/405 that is not application/json can only come from the router itself.
 func jsonRouterErrors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(&routerErrorWriter{ResponseWriter: w, r: r}, r)

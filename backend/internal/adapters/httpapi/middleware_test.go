@@ -165,6 +165,10 @@ func TestCORS(t *testing.T) {
 			if tc.preflight && tc.wantAllowed && rec.Header().Get("Access-Control-Allow-Methods") == "" {
 				t.Error("preflight response has no Access-Control-Allow-Methods")
 			}
+			// The browser hides response headers from cross-origin scripts unless they are exposed.
+			if !tc.preflight && tc.wantAllowed && rec.Header().Get("Access-Control-Expose-Headers") != "X-Request-ID" {
+				t.Errorf("Access-Control-Expose-Headers = %q, want X-Request-ID", rec.Header().Get("Access-Control-Expose-Headers"))
+			}
 		})
 	}
 }

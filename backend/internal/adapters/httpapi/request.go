@@ -85,9 +85,9 @@ func decodeError(err error) *apiError {
 			// The whole field has the wrong type, for example "operands": "1,2".
 			return invalidRequest(`field "operands" must be an array of numbers`)
 		case strings.HasPrefix(wrongType.Field, "operands."):
-			// One element (reported as "operands.0") has the wrong type ("1") or does not
-			// fit in a float64 (1e999).
-			return invalidOperand(fmt.Sprintf("operand %s must be a finite number",
+			// One element (reported as "operands.0") is not a number ("1") or does not fit
+			// in a float64 (1e999).
+			return invalidOperand(fmt.Sprintf("operand %s must be a number that fits in a float64",
 				strings.TrimPrefix(wrongType.Field, "operands.")))
 		default:
 			return invalidRequest(fmt.Sprintf("field %q has the wrong type", wrongType.Field))

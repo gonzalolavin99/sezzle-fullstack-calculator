@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,45 +43,59 @@ func run(ctx context.Context, getenv func(string) string, logOutput io.Writer) e
 	if err != nil {
 		return err
 	}
-	handler := httpapi.Chain(
-		httpapi.NewHandler(app.NewCalculator(registry)),
-		httpapi.RequestID,
-		httpapi.Logging(logger),
-		httpapi.Recover(logger),
-		httpapi.CORS(cfg.AllowedOrigins),
-	)
+	routes := httpapi.NewHandler(app.NewCalculator(registry))
 
 	srv := &http.Server{
-		Addr:              ":" + cfg.Port,
-		Handler:           handler,
+		Handler:           withMiddleware(routes, cfg, logger),
 		ReadHeaderTimeout: 5 * time.Second, // protects against slow-header (Slowloris) clients
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
 
+	// Listen before starting the goroutine: a busy port fails here, synchronously,
+	// and the log shows the real address (useful with PORT=0).
+	ln, err := net.Listen("tcp", ":"+cfg.Port)
+	if err != nil {
+		return fmt.Errorf("listen: %w", err)
+	}
+	logger.Info("server starting", "addr", ln.Addr().String())
+
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	serveErr := make(chan error, 1)
-	go func() {
-		logger.Info("server starting", "addr", srv.Addr)
-		serveErr <- srv.ListenAndServe()
-	}()
+	go func() { serveErr <- srv.Serve(ln) }()
 
 	select {
 	case err := <-serveErr:
-		// The server stopped on its own, for example because the port is in use.
-		return fmt.Errorf("listen: %w", err)
+		// Serve only returns early on a real failure.
+		return fmt.Errorf("serve: %w", err)
 	case <-ctx.Done():
 	}
 
 	logger.Info("shutting down", "timeout", shutdownTimeout.String())
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
-	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("shutdown: %w", err)
+	}
+	// Wait for the serve goroutine; after Shutdown, Serve returns http.ErrServerClosed.
+	if err := <-serveErr; !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("serve: %w", err)
 	}
 	logger.Info("server stopped")
 	return nil
+}
+
+// withMiddleware wraps the routes in the production middleware, outermost first:
+// RequestID (every log line gets the ID), Logging (sees the final status, including the
+// 500 written by Recover), Recover, then CORS (headers also on error responses).
+func withMiddleware(routes http.Handler, cfg platform.Config, logger *slog.Logger) http.Handler {
+	return httpapi.Chain(routes,
+		httpapi.RequestID,
+		httpapi.Logging(logger),
+		httpapi.Recover(logger),
+		httpapi.CORS(cfg.AllowedOrigins),
+	)
 }

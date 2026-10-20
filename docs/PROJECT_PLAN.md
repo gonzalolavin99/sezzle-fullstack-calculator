@@ -198,7 +198,7 @@ If a draft is used, log it in `docs/ai/PROMPTS.md`.
 | Unit tests | `go test`, table-driven | Vitest + React Testing Library |
 | HTTP tests | `net/http/httptest` | MSW to mock the API |
 | End-to-end | — | Playwright smoke test against Docker Compose |
-| Race detector | `go test -race` (CI on Linux; needs cgo, not available on a default Windows setup) | — |
+| Race detector | `go test -race` (CI on Linux; locally `make test-race` in Docker, since cgo is not available on a default Windows setup) | — |
 | Coverage | `-coverprofile` + HTML report | Vitest v8 coverage |
 | Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc --noEmit` |
 | CI | GitHub Actions: lint → test → coverage → docker build | same workflow |

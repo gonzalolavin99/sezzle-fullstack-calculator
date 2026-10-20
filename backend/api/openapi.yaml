@@ -147,15 +147,19 @@ components:
       type: object
       additionalProperties: false
       required: [operation, operands]
+      description: |
+        `operation` is any string and `operands` any length on purpose: the server validates them and
+        answers `UNKNOWN_OPERATION` or `INVALID_ARITY`, so the request schema does not reject them first.
+        Keys are matched case-insensitively and a repeated key keeps its last value (Go `encoding/json`).
       properties:
         operation:
-          $ref: '#/components/schemas/OperationName'
+          type: string
+          description: One of the names returned by `GET /api/v1/operations`.
+          examples: [divide]
         operands:
           type: array
           description: One operand for `sqrt`, two for every other operation.
           items: { type: number, format: double }
-          minItems: 1
-          maxItems: 2
 
     CalculateResponse:
       type: object

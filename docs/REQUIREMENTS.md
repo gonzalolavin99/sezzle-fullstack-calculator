@@ -62,9 +62,9 @@ Every row must be ✅ before submitting. Claude Code updates this table as tasks
 | R3 | Intuitive UI for input and results | `frontend/src/features/calculator` | ⬜ |
 | R4 | Frontend input validation and error handling | reducer + API client + error banner | ⬜ |
 | R5 | Responsive design | CSS, tested at 360px and desktop | ⬜ |
-| R6 | REST endpoints for operations | `backend/internal/adapters/httpapi` | ⬜ |
-| R7 | Backend validation and edge cases | domain errors + handler tests | ⬜ |
-| R8 | JSON responses (success and errors) | handler + OpenAPI spec | ⬜ |
+| R6 | REST endpoints for operations | `backend/internal/adapters/httpapi` | ✅ |
+| R7 | Backend validation and edge cases | domain errors + handler tests | ✅ |
+| R8 | JSON responses (success and errors) | handler + OpenAPI spec | ✅ |
 | R9 | Clean, idiomatic code | golangci-lint, ESLint, Prettier in CI | ⬜ |
 | R10 | Unit tests, both layers | `go test`, Vitest | ⬜ |
 | R11 | Coverage report | `make coverage`, CI artifact, README badge | ⬜ |
