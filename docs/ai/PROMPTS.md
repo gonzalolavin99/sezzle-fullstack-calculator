@@ -6,7 +6,11 @@ explain every part of it.
 
 ## Tools
 - **Claude (claude.ai):** planning, requirements analysis and the initial project plan, ADRs and this harness.
-- **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md`.
+- **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md` (phases 0 to F4).
+- **Claude Code (cloud session, claude.ai/code):** F5 to the end of phase 5 (entries 028 onward), in a Linux
+  container: tests, browser checks with Playwright, Docker builds and pushes, with the same `CLAUDE.md` rules.
+- **`code-reviewer` subagent** (`.claude/agents/code-reviewer.md`): an independent, read-only review before each
+  pull request (entries 022, 031, 037).
 - **v0 and Lovable:** one visual draft each from the same prompt, used only as a design reference (entry 008).
 
 ## How I worked
@@ -14,6 +18,8 @@ explain every part of it.
 2. Wrote `CLAUDE.md` so Claude Code had context about the project, my level in Go and the working rules
    (tests first, small commits, explain decisions, ask before big changes).
 3. Built task by task from `docs/PROJECT_PLAN.md`, reviewing each change before committing.
+4. Before each pull request, ran the `code-reviewer` subagent and fixed every "Must fix"; each finding was first
+   reproduced with a failing test or a command, and suggestions that turned out wrong were not applied.
 
 ## Log
 
@@ -564,6 +570,58 @@ explain every part of it.
   coverage) in 2 min, frontend in 26 s, and Docker build plus the Playwright smoke test in 1 min 16 s. That run is
   the clean-machine check D3 and R13 were waiting for, so both are now marked done; R9 too (lint runs in CI).
 - **Review:** checked the check runs on the PR head before changing the docs.
+
+### 039 — R1: README (Claude Code)
+- **Prompt (summary):** "ok" (merge PR #5), then continue with phase 5.
+- **Output:** PR #5 merged (normal merge) after updating its description with the green CI result; branch
+  `docs/readme` from `main`. README: CI badge, a real screenshot (taken with Playwright from the Docker stack),
+  highlights, API reference with `curl` examples and an error table whose responses were copied from real calls
+  to the running stack, architecture diagram and layers, "adding an operation" with the real file names, a design
+  decisions table linking the ADRs, assumptions (percentage, float64, inputs, power, left-to-right chaining), AI usage,
+  "what I would do with more time" (the known limitations from the reviews), and a test and coverage table.
+- **Review:** every relative link checked to exist. One wrong claim caught by calling the API before committing: the
+  draft said a missing operand gives `INVALID_OPERAND`, but a missing `operands` field gives `INVALID_REQUEST`; a `null`,
+  non-numeric or `1e400` operand gives `INVALID_OPERAND` (400). Also noticed while checking: `/healthz` is not proxied
+  by nginx (it is the Docker healthcheck), so the README says so instead of showing it on port 8080. "Time spent" is
+  left for Gonzalo to fill in: it is his real time and cannot be inferred.
+
+### 040 — R2: ADRs reviewed (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** all five ADRs re-read against the code. Two statements made precise: ADR 0002 (a new operation also needs
+  one line in `DefaultOperations()`) and ADR 0004 (display rounding is 15 significant digits, after the F6 fix). New
+  ADR 0006 records the phase 4 decisions that had none: two images and Compose, same-origin proxy through nginx (no CORS
+  in the normal setup), start-up ordered by health, the CI pipeline and how versions are pinned, with the alternatives
+  (distroless, direct backend port, a coverage service). Linked from the README's decisions table.
+- **Review:** each ADR claim checked against the code or a run from earlier entries; nothing else contradicted it.
+
+### 041 — R3: AI usage log reviewed (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** entries 001–040 checked for gaps (none); "Tools" now says which phases ran in the desktop app and which
+  in a cloud session, and names the `code-reviewer` subagent; "How I worked" gains the review step.
+- **Review:** the intro sentence "I reviewed, ran and tested all generated code" is Gonzalo's own statement and was not
+  changed; from F5 onward the code was run in the cloud container, so Claude Code asked him to pull and run it himself
+  (`make test`, `docker compose up --build`) before submitting, so the sentence stays true.
+
+### 042 — Time spent, and a local checkout mix-up (Claude Code)
+- **Prompt (summary):** "About 4 hours", plus Gonzalo's PowerShell output: `git checkout docs/readme` failed, `make test`
+  passed (146 frontend tests, all backend packages), `docker compose up --build` said "no configuration file provided".
+- **Output:** "Time spent" filled in with his number. Diagnosis of the error: the checkout ran before `git pull` had
+  fetched the new branch, so it failed and the pull fast-forwarded `feat/frontend` instead, which has no
+  `docker-compose.yml` (it arrived with phase 4). Fix: fetch first, then check out the branch.
+- **Review:** nothing in the repository was wrong; the instructions I gave ("git checkout docs/readme; git pull") had the
+  two commands in the wrong order for a branch that did not exist locally yet. My mistake.
+
+### 043 — R4: Gonzalo's own run on Windows (Claude Code)
+- **Prompt (summary):** Gonzalo's PowerShell output and a screenshot: on `docs/readme`, `npm.cmd install`, `make test`
+  (backend packages and 146 frontend tests green) and `docker compose up --build` on Windows with Docker Desktop
+  (WSL2): both images built, backend healthy, nginx started, the app worked in the browser (dark mode, history,
+  √36 = 6, a 15-digit sum shown in scientific notation). He asked whether thousands separators look right, whether
+  everything can run on Vercel alone, and why the README on GitHub looked unfinished.
+- **Output:** R4 marked done (fresh-machine run by the author, plus the CI clean-runner run). The README on GitHub looked
+  unfinished because the README work was still on the open PR #6, not on `main`; merging it fixes that. Thousands
+  separators kept: desk and phone calculators group digits the same way (the display groups only after a number is
+  entered, which the phase 3 review also noted).
+- **Review:** no code change needed; the hosting question is answered with the options from ADR 0005.
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)

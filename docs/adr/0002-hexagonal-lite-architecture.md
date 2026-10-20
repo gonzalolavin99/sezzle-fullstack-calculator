@@ -19,6 +19,7 @@ test seam ("lite").
 
 ## Consequences
 - The math is tested without starting a server.
-- A new operation is one file plus a test; a new transport (gRPC, CLI) reuses the domain unchanged.
+- A new operation is one type plus a table-driven test and one line in `DefaultOperations()`; the HTTP API and the
+  UI pick it up from the registry. A new transport (gRPC, CLI) reuses the domain unchanged.
 - Alternatives considered: a flat `main.go` (fast but mixes concerns and is harder to test); multiple microservices
   (network overhead and operational cost with no benefit at this size).

@@ -13,7 +13,9 @@ represent every decimal exactly (for example `0.1 + 0.2`).
   Every operation returns through one shared guard (`checkResult`): an infinite result is `RESULT_OUT_OF_RANGE`,
   a `NaN` result means the math is undefined (`INVALID_OPERAND`, 422; not reachable with finite inputs today),
   and `-0` becomes `0` so the API never returns `-0`.
-- The API returns the raw `float64` result; the frontend formats it for display (limited significant digits).
+- The API returns the raw `float64` result; the frontend formats it for display only: up to 15 significant digits
+  (the keypad accepts 15 digits, and `float64` holds 15 decimal digits exactly), so `0.30000000000000004` shows as
+  `0.3` while every typed digit is shown back unchanged. Very large or small values use scientific notation.
 - Document the precision trade-off in the README.
 
 ## Consequences
