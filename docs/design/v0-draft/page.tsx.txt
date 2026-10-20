@@ -1,0 +1,131 @@
+'use client'
+
+import { useState } from 'react'
+
+// Design tokens: paper, ink, muted, accent, danger.
+type TapeEntry = { expression: string; time: string; error?: boolean }
+
+type Operation = '+' | '−' | '×' | '÷' | '^'
+
+const initialTape: TapeEntry[] = [
+  { expression: '12 ÷ 4 = 3', time: '10:42:18' },
+  { expression: '5 ÷ 0 — division by zero', time: '10:41:52', error: true },
+  { expression: '28 + 16 = 44', time: '10:39:07' },
+  { expression: '100 × 0.15 = 15', time: '10:37:44' },
+]
+
+const keypad = [
+  { label: 'C', aria: 'clear', kind: 'utility' },
+  { label: '⌫', aria: 'backspace', kind: 'utility' },
+  { label: '%', aria: 'percentage', kind: 'utility' },
+  { label: '÷', aria: 'divide', kind: 'operator' },
+  { label: '7', aria: 'seven', kind: 'number' },
+  { label: '8', aria: 'eight', kind: 'number' },
+  { label: '9', aria: 'nine', kind: 'number' },
+  { label: '×', aria: 'multiply', kind: 'operator' },
+  { label: '4', aria: 'four', kind: 'number' },
+  { label: '5', aria: 'five', kind: 'number' },
+  { label: '6', aria: 'six', kind: 'number' },
+  { label: '−', aria: 'subtract', kind: 'operator' },
+  { label: '1', aria: 'one', kind: 'number' },
+  { label: '2', aria: 'two', kind: 'number' },
+  { label: '3', aria: 'three', kind: 'number' },
+  { label: '+', aria: 'add', kind: 'operator' },
+  { label: '0', aria: 'zero', kind: 'number wide' },
+  { label: '.', aria: 'decimal point', kind: 'number' },
+  { label: '=', aria: 'equals', kind: 'equals' },
+]
+
+export default function Page() {
+  const [input, setInput] = useState('12')
+  const [pending, setPending] = useState<Operation | null>('÷')
+  const [error, setError] = useState('Cannot divide by zero')
+  const [isLoading, setIsLoading] = useState(false)
+  const [tape, setTape] = useState(initialTape)
+  const [inspectorOpen, setInspectorOpen] = useState(true)
+
+  function calculate(value: string) {
+    if (value === '0' && pending === '÷') {
+      setError('Cannot divide by zero')
+      setTape((current) => [{ expression: '5 ÷ 0 — division by zero', time: '10:43:02', error: true }, ...current])
+      return
+    }
+    setError('')
+  }
+
+  function handleKey(label: string) {
+    setError('')
+    if (/^\d$/.test(label)) {
+      setInput((current) => (current === '0' ? label : current + label))
+      return
+    }
+    if (label === '.') {
+      setInput((current) => (current.includes('.') ? current : `${current}.`))
+      return
+    }
+    if (label === 'C') {
+      setInput('0')
+      setPending(null)
+      return
+    }
+    if (label === '⌫') {
+      setInput((current) => current.length > 1 ? current.slice(0, -1) : '0')
+      return
+    }
+    if (label === '%') {
+      setInput((current) => String(Number(current) / 100))
+      return
+    }
+    if (['+', '−', '×', '÷'].includes(label)) {
+      setPending(label as Operation)
+      return
+    }
+    if (label === '=') calculate(input)
+  }
+
+  return (
+    <main className="min-h-screen bg-[var(--paper)] px-4 py-6 text-[var(--ink)] transition-colors sm:px-8 sm:py-10 lg:px-12">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-8 flex items-end justify-between border-b border-[var(--rule)] pb-5">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--muted)]">Desk instrument / 01</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Paper tape</h1>
+          </div>
+          <p className="hidden font-mono text-xs text-[var(--muted)] sm:block">CALCULATOR · READY</p>
+        </header>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(360px,0.88fr)_minmax(420px,1.12fr)] lg:items-start lg:gap-10">
+          <section aria-label="Calculator" className="space-y-4">
+            <div className="rounded-[2px] border border-[var(--rule)] bg-[var(--panel)] p-4 shadow-[0_12px_30px_rgba(40,35,25,0.06)] sm:p-5">
+              <div aria-live="polite" className="min-h-[104px] border-b border-[var(--rule)] px-2 pb-4 text-right font-mono tabular-nums">
+                <div className="h-6 text-xs text-[var(--muted)]">{pending ? `12 ${pending}` : ' '}</div>
+                {isLoading ? <div className="mt-5 text-lg text-[var(--muted)]">···</div> : <div className="mt-2 break-all text-5xl tracking-[-0.08em] sm:text-6xl">{input}</div>}
+              </div>
+              {error && <div role="alert" className="mt-4 flex items-center justify-between border-l-2 border-[var(--danger)] bg-[var(--danger-soft)] px-3 py-2 text-xs text-[var(--danger)]"><span>{error}</span><button onClick={() => setError('')} className="font-mono underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)]" aria-label="Dismiss error">dismiss</button></div>}
+              <div className="mt-4 grid grid-cols-3 gap-2 border-b border-[var(--rule)] pb-4">
+                {[['xʸ', 'power'], ['√', 'square root'], ['%', 'percentage']].map(([label, aria]) => <button key={aria} onClick={() => label === '√' && setInput(String(Math.sqrt(Number(input))))} aria-label={aria} className="h-9 border border-[var(--rule)] bg-[var(--paper)] font-mono text-sm text-[var(--muted)] transition hover:border-[var(--ink)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">{label}</button>)}
+              </div>
+              <div className="grid grid-cols-4 gap-2 pt-4">
+                {keypad.map((key) => <button key={key.aria} onClick={() => handleKey(key.label)} aria-label={key.aria} className={`h-14 border font-mono text-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:translate-y-px ${key.kind.includes('wide') ? 'col-span-2' : ''} ${key.kind === 'equals' ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-ink)] hover:brightness-95' : key.kind === 'operator' ? 'border-[var(--rule)] bg-[var(--operator)] text-[var(--ink)] hover:border-[var(--ink)]' : 'border-[var(--rule)] bg-[var(--button)] text-[var(--ink)] hover:border-[var(--ink)]'}`}>{key.label}</button>)}
+              </div>
+            </div>
+
+            <div className="border border-[var(--rule)] bg-[var(--panel)]">
+              <button onClick={() => setInspectorOpen((open) => !open)} aria-expanded={inspectorOpen} className="flex w-full items-center justify-between px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"><span className="text-sm font-medium">Inspect request</span><span className="font-mono text-xs text-[var(--muted)]">{inspectorOpen ? '−' : '+'}</span></button>
+              {inspectorOpen && <div className="border-t border-[var(--rule)] px-4 pb-4 pt-3"><div className="flex items-center gap-4 font-mono text-xs"><span className="text-[var(--muted)]">POST /api/v1/calculate</span><span className="ml-auto text-emerald-700 dark:text-emerald-400">200</span><span className="text-[var(--muted)]">12 ms</span></div><div className="mt-3 grid gap-2 text-[11px] leading-5 sm:grid-cols-2"><pre className="overflow-x-auto bg-[var(--code)] p-3 text-[var(--muted)]">{'{"operation":"divide",\n"operands":[12,4]}'}</pre><pre className="overflow-x-auto bg-[var(--code)] p-3 text-[var(--muted)]">{'{"operation":"divide",\n"operands":[12,4],\n"result":3}'}</pre></div></div>}
+            </div>
+          </section>
+
+          <section aria-labelledby="tape-heading" className="min-h-[520px] border border-[var(--rule)] bg-[var(--tape)] px-5 py-5 shadow-[0_12px_30px_rgba(40,35,25,0.04)] sm:px-8">
+            <div className="flex items-center justify-between border-b border-[var(--rule)] pb-4"><div><p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--muted)]">Running record</p><h2 id="tape-heading" className="mt-1 text-2xl font-semibold">Tape</h2></div><button onClick={() => setTape([])} className="text-xs text-[var(--muted)] underline decoration-[var(--rule)] underline-offset-4 transition hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">Clear tape</button></div>
+            <div className="divide-y divide-[var(--rule)]">
+              {tape.map((entry, index) => <button key={`${entry.time}-${index}`} onClick={() => setInput(entry.expression.match(/= ([\d.]+)/)?.[1] ?? input)} className={`motion-safe:animate-[tape-in_220ms_ease-out] flex w-full items-baseline gap-3 py-4 text-left transition hover:bg-[var(--tape-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)] ${entry.error ? 'text-[var(--danger)] line-through' : ''}`}><span className="flex-1 font-mono text-sm tabular-nums sm:text-base">{entry.expression}</span><time className="font-mono text-[10px] text-[var(--muted)] no-underline">{entry.time}</time></button>)}
+              {tape.length === 0 && <p className="py-12 text-center font-mono text-xs text-[var(--muted)]">Tape is clear.</p>}
+            </div>
+            <div className="mt-8 border-t border-dashed border-[var(--rule)] pt-4 text-right font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">End of tape</div>
+          </section>
+        </div>
+      </div>
+    </main>
+  )
+}

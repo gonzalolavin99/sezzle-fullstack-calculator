@@ -7,7 +7,7 @@ explain every part of it.
 ## Tools
 - **Claude (claude.ai):** planning, requirements analysis and the initial project plan, ADRs and this harness.
 - **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md`.
-- *(Add v0 or Lovable here if used for a visual draft.)*
+- **v0 and Lovable:** one visual draft each from the same prompt, used only as a design reference (entry 008).
 
 ## How I worked
 1. Turned the assignment email into `docs/REQUIREMENTS.md` with a traceability table.
@@ -95,6 +95,21 @@ explain every part of it.
   has two errors, `ErrNonFiniteOperand` and `ErrInvalidOperand`; the API contract does not change.
 - **Review:** `go test`, `go vet` and `golangci-lint` (run and fmt) all clean. Rejected alternative: a struct
   error type carrying API codes, because it would leak HTTP concerns into the domain.
+
+### 008 — UI visual draft (Claude Code → v0 and Lovable)
+- **Prompt (summary):** I asked whether to try v0 or Lovable for the frontend. Claude Code recommended a visual
+  draft only (as the plan says) and wrote one prompt for v0, based on `docs/DESIGN.md`: a single React + Tailwind
+  component, no component libraries, mock data, "paper tape" concept, desktop and 360px layouts, keypad, advanced
+  row, error banner, tape with a voided error line, collapsible API inspector, light/dark tokens, aria-labels,
+  one animation with reduced-motion support. I ran the same prompt in v0 and in Lovable.
+- **Output:** two deployed drafts. Claude Code compared them in a browser at desktop and 375px widths and chose
+  v0 (closer to the design doc, more polished, code downloadable). I downloaded the v0 code; `page.tsx` and
+  `globals.css` are kept as reference in `docs/design/v0-draft/`. `docs/DESIGN.md` now lists what was adopted,
+  changed and rejected, plus the color tokens.
+- **Review:** Both drafts showed `%` twice; this came from Claude Code's prompt (it listed `%` in both the advanced
+  row and the keypad) and is fixed in the design notes. Rejected from the draft: math in the browser, one large
+  component, Next.js/shadcn/analytics dependencies. Claude Code could not read the v0 source through the Vercel
+  connection (403 on my team scope), so I downloaded it manually.
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
