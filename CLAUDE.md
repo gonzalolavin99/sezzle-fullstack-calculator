@@ -52,6 +52,8 @@ Start with a 20-minute Go primer before task B1. He must be able to explain ever
 ## Commands (keep this list current)
 
 ```bash
+make help         # list every target
+make tools        # install golangci-lint (pinned version)
 make dev          # backend + frontend in watch mode
 make test         # all tests
 make coverage     # coverage reports for both layers

@@ -14,6 +14,10 @@ Only Docker is needed to run the full stack. To run or develop each layer locall
 | Node.js | 24 LTS (24.20.0) | frontend |
 | Docker | Engine 29.8.2 (Docker Desktop 4.95.0) | full stack with `docker compose` |
 | GNU Make | 4.4.1 | shortcuts in the `Makefile` (optional) |
+| golangci-lint | 2.15.0 | backend lint; install with `make tools` |
+
+`make help` lists every shortcut (`dev`, `test`, `coverage`, `lint`, `fmt`, `docker-up`, ...). The `Makefile`
+only uses commands that work in both POSIX `sh` and Windows `cmd.exe`.
 
 ## Quick start
 

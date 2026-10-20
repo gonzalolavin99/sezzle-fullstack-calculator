@@ -71,6 +71,16 @@ explain every part of it.
   (Go 1.27.0, no dependencies); "Prerequisites" table in the README with the installed versions.
 - **Review:** Checked `go env` points the module and build caches to G:, and that `go vet ./...` runs (no packages yet).
 
+### 006 — S3: Makefile (Claude Code)
+- **Prompt (summary):** "Let's go, and keep explaining what you are doing."
+- **Output:** `Makefile` with `help` (default), `tools`, `dev`, `test`, `coverage`, `lint`, `fmt`, `docker-up`,
+  `docker-down` and `-backend`/`-frontend` variants. Recipes avoid `grep`/`awk`/`test` so they run in both `sh`
+  and `cmd.exe` (on my Windows setup `make` falls back to `cmd.exe`). `help` uses make's `$(info)`. Installed
+  golangci-lint v2.15.0 (latest release, checked on GitHub) and added it to the ADR 0001 tool list.
+- **Review:** Ran `make help` through both `cmd.exe` and `sh`. First version printed "Nothing to be done for
+  'help'"; fixed with `@exit 0`. `make test-backend` fails with "no packages to test" until B1 adds Go code —
+  expected. The race detector is left to CI because it needs cgo, which a default Windows setup lacks.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
