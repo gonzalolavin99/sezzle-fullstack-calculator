@@ -404,6 +404,23 @@ explain every part of it.
   script mistake, not an app bug. Kept: the stacked mobile order (calculator, request details, history) as in
   `docs/DESIGN.md`; no manual theme switch (the design asks for `prefers-color-scheme` only).
 
+### 030 — F7: component tests for the main flows (Claude Code)
+- **Prompt (summary):** same session; continued with the plan after F6.
+- **Output:** a "main flows" block in `Calculator.test.tsx`, keypad → reducer → hook → client → MSW fake
+  backend: `2 + 3 = 5`, chaining (`2 + 3 × 4 = 20`, calculated left to right), `5 ÷ 0` (alert, kept in the
+  history, dismissable), `√-9`, power and percentage from the API's operation list, reusing a history result and
+  clearing the history, and the backend down (operations list fails, then a calculation shows the "can't reach"
+  message while the keys stay usable). README lists the frontend test, coverage and lint commands.
+- **Review:** 138 tests green; frontend coverage 98.8% statements, 100% lines (target ≥ 85%); lint, Prettier and
+  strict `tsc` clean. The implementation already existed, so the tests passed at once; to prove they guard
+  something, three behaviours were broken on purpose (every error shown as a generic message; √ sent as a binary
+  operation; Dismiss doing nothing) and each broke at least one test. Mistakes caught: the first run used the
+  key's text `C` instead of its accessible name `Clear`, and pressed Clear before the result arrived (which
+  cancels the request), so the test waits for the result first. My first sabotage helper restored the whole
+  folder with `git checkout`, which also wiped the new, uncommitted test file; noticed because the test count
+  dropped from 16 to 9, the tests were re-applied and the two affected checks were redone restoring only the
+  sabotaged file. R1–R4 and R10 marked done in the traceability table.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

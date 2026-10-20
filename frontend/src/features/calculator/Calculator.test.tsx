@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -107,6 +107,114 @@ describe('Calculator', () => {
       const keypad = screen.getByRole('group', { name: 'Keypad' })
       expect(keypad).toHaveAccessibleDescription(/Enter/)
       expect(await screen.findByRole('group', { name: 'More operations' })).toBeInTheDocument()
+    })
+  })
+
+  // The main user flows, keypad to fake backend and back (task F7).
+  describe('main flows', () => {
+    async function press(user: ReturnType<typeof userEvent.setup>, ...names: string[]) {
+      for (const name of names) {
+        await user.click(await screen.findByRole('button', { name }))
+      }
+    }
+
+    it('calculates 2 + 3 = 5', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await press(user, '2', 'Add', '3', 'Equals')
+
+      expect(await screen.findByRole('button', { name: 'Use result 5' })).toHaveTextContent(
+        '2 + 3 = 5',
+      )
+      expect(screen.getByTestId('display-value')).toHaveTextContent('5')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('chains operations left to right: 2 + 3 × 4 = 20', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await press(user, '2', 'Add', '3', 'Multiply')
+      await screen.findByRole('button', { name: 'Use result 5' })
+      await press(user, '4', 'Equals')
+
+      expect(await screen.findByRole('button', { name: 'Use result 20' })).toBeInTheDocument()
+    })
+
+    it('shows a clear error for 5 ÷ 0, keeps it in the history and lets it be dismissed', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await press(user, '5', 'Divide', '0', 'Equals')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent("Can't divide by zero.")
+      const history = screen.getByRole('region', { name: 'History' })
+      expect(within(history).getByText('5 ÷ 0')).toBeInTheDocument()
+      expect(within(history).getByText(/Can't divide by zero/)).toBeInTheDocument()
+
+      await press(user, 'Dismiss')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('shows a clear error for the square root of a negative number', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await press(user, '9', 'Change sign', 'Square root')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "That operation isn't defined for this value.",
+      )
+      expect(screen.getByText('√-9')).toBeInTheDocument()
+    })
+
+    it('runs the advanced operations from the API: 2 xʸ 10 and 15% of 200', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await press(user, '2', 'Power', '1', '0', 'Equals')
+      expect(await screen.findByRole('button', { name: 'Use result 1,024' })).toBeInTheDocument()
+
+      await press(user, '1', '5', 'Percent of', '2', '0', '0', 'Equals')
+      expect(await screen.findByRole('button', { name: 'Use result 30' })).toHaveTextContent(
+        '15% of 200 = 30',
+      )
+    })
+
+    it('reuses a result from the history and clears the history', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await press(user, '2', 'Add', '3', 'Equals')
+      await screen.findByRole('button', { name: 'Use result 5' })
+      await press(user, 'Clear')
+      expect(screen.getByTestId('display-value')).toHaveTextContent('0')
+
+      await press(user, 'Use result 5', 'Add', '1', 'Equals')
+      expect(await screen.findByRole('button', { name: 'Use result 6' })).toBeInTheDocument()
+
+      await press(user, 'Clear history')
+      expect(screen.getByText('Results appear here.')).toBeInTheDocument()
+    })
+
+    it('tells the user when the backend is down, and the basic keys still respond', async () => {
+      server.use(
+        http.get(`${TEST_API}/api/v1/operations`, () => HttpResponse.error()),
+        http.post(`${TEST_API}/api/v1/calculate`, () => HttpResponse.error()),
+      )
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      expect(
+        await screen.findByText("Couldn't load more operations. The basic keys still work."),
+      ).toBeInTheDocument()
+
+      await press(user, '2', 'Add', '3', 'Equals')
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "Can't reach the calculator service. Check that the backend is running.",
+      )
+      expect(screen.getByRole('button', { name: '7' })).toBeEnabled()
     })
   })
 

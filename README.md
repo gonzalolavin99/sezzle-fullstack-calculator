@@ -61,6 +61,10 @@ make test-backend       # go test ./...
 make coverage-backend   # per-function report, plus backend/coverage.html
 make test-race          # race detector in a Linux container (it needs cgo, so it does not run natively on Windows)
 make lint-backend       # golangci-lint run + format check
+
+make test-frontend      # Vitest: API client, reducer, components and user flows (MSW fakes the backend)
+make coverage-frontend  # text summary, plus frontend/coverage/index.html
+make lint-frontend      # ESLint, Prettier check and strict tsc
 ```
 
 ## API reference
