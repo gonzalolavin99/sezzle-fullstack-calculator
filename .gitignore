@@ -35,3 +35,8 @@ Thumbs.db
 
 # Claude Code local settings (shared harness lives in .claude/skills and .claude/agents)
 .claude/settings.local.json
+
+# Local Codex harness (not part of this repository)
+AGENTS.md
+.agents/
+.codex/

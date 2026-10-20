@@ -121,7 +121,8 @@ explain every part of it.
   failed on a misaligned one-line method in the test; fixed with `make fmt-backend`. Rejected alternative: a
   `switch` on the operation name in the handler, which would mix domain and HTTP and grow with every operation.
   Also noticed that the commit for entry 008 picked up a Codex copy of the harness (`AGENTS.md`, `.agents/`,
-  `.codex/`) that was not created by Claude Code; it stays until I decide whether it belongs in the repo.
+  `.codex/`) that was not created by Claude Code. I asked to remove it from the repo; it is now untracked and
+  ignored, and the local copy stays on my machine.
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
