@@ -28,7 +28,10 @@ export function AdvancedOperations({
     )
   }
 
-  const advanced = operations.filter((op) => !BASIC_OPERATIONS.has(op.name))
+  // The keypad sends one operand (√) or two (xʸ); an operation with another arity cannot be entered.
+  const advanced = operations.filter(
+    (op) => !BASIC_OPERATIONS.has(op.name) && (op.arity === 1 || op.arity === 2),
+  )
   return (
     <div role="group" aria-label="More operations" className="grid grid-cols-3 gap-2">
       {advanced.map((op) => {
@@ -38,7 +41,7 @@ export function AdvancedOperations({
             key={op.name}
             variant="advanced"
             aria-label={label.name}
-            disabled={disabled}
+            aria-disabled={disabled}
             onClick={() => onSelect(op)}
           >
             {label.text}

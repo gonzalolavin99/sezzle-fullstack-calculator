@@ -200,7 +200,7 @@ If a draft is used, log it in `docs/ai/PROMPTS.md`.
 | End-to-end | — | Playwright smoke test against Docker Compose |
 | Race detector | `go test -race` (CI on Linux; locally `make test-race` in Docker, since cgo is not available on a default Windows setup) | — |
 | Coverage | `-coverprofile` + HTML report | Vitest v8 coverage |
-| Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc --noEmit` |
+| Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc -b` (both tsconfigs set `noEmit`) |
 | CI | GitHub Actions: lint → test → coverage → docker build | same workflow |
 
 Coverage reports are uploaded as CI artifacts, and the README shows a coverage summary.
@@ -275,7 +275,7 @@ Estimated times are for Claude Code + Gonzalo together.
 ### Phase 3 — Frontend (≈1.5 h)
 
 - [x] **F1. Scaffold.** Vite React TS, strict TypeScript, ESLint, Prettier, Vitest, RTL, Tailwind with design tokens from `docs/DESIGN.md`.
-  The `lint` npm script must run `eslint`, `prettier --check` and `tsc --noEmit`, so `make lint` matches the docs.
+  The `lint` npm script must run `eslint`, `prettier --check` and `tsc -b` (type-check only: `noEmit`), so `make lint` matches the docs.
 - [x] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
 - [x] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
 - [x] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).

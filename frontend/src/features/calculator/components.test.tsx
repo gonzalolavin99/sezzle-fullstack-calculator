@@ -81,8 +81,13 @@ describe('Keypad', () => {
     const dispatch = vi.fn()
     render(<Keypad dispatch={dispatch} disabled />)
 
-    expect(screen.getByRole('button', { name: '7' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Clear' })).toBeEnabled()
+    // aria-disabled, not disabled: a disabled button drops keyboard focus to <body> on every calculation.
+    expect(screen.getByRole('button', { name: '7' })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('button', { name: '7' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Clear' })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 })
 
@@ -99,6 +104,20 @@ describe('AdvancedOperations', () => {
       <AdvancedOperations
         status="ready"
         operations={operations}
+        onSelect={vi.fn()}
+        disabled={false}
+      />,
+    )
+    const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'))
+    expect(names).toEqual(['Power', 'Square root', 'modulo'])
+  })
+
+  // The keypad can only send one or two operands; another arity would always fail with INVALID_ARITY.
+  it('leaves out operations the keypad cannot send', () => {
+    render(
+      <AdvancedOperations
+        status="ready"
+        operations={[...operations, { name: 'clamp', arity: 3 }, { name: 'random', arity: 0 }]}
         onSelect={vi.fn()}
         disabled={false}
       />,
@@ -171,7 +190,7 @@ describe('Tape', () => {
     render(<Tape entries={entries} onUse={onUse} onClear={onClear} />)
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: 'Use result 3' }))
+    await user.click(screen.getByRole('button', { name: 'Use result: 12 ÷ 4 = 3' }))
     await user.click(screen.getByRole('button', { name: 'Clear history' }))
 
     expect(onUse).toHaveBeenCalledWith(3)

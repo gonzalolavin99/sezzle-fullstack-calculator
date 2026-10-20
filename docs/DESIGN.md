@@ -8,7 +8,7 @@ iPhone-style clone — without being a gimmick.
 Two pieces of personality, both small and useful:
 
 1. **The tape ("History"):** each result appears as a line (`12 ÷ 4 = 3`) with the time. Failed calculations
-   stay in the list with their message in red (`5 ÷ 0 · Cannot divide by zero`). A result can be clicked to reuse it. A
+   stay in the list with their message in red (`5 ÷ 0 · Can't divide by zero.`). A result can be clicked to reuse it. A
    "Clear" button empties the list.
 2. **The API inspector ("Request details"):** a collapsed `<details>` showing the last request and response JSON,
    status code and latency. It shows reviewers the full-stack flow and helps debugging.
@@ -63,14 +63,15 @@ from scratch in `frontend/`; no draft code is copied as-is.
 | `panel` | `#f7f5f0` | `#242421` | calculator and request details |
 | `tape` / `tape-hover` | `#faf8f2` / `#f1eee6` | `#292824` / `#33312b` | history background and hover |
 | `key` / `operator` | `#f4f1eb` / `#e8e4dc` | `#2b2a26` / `#36342e` | digit and operator keys |
-| `ink` / `muted` | `#262522` / `#6b675f` | `#efede6` / `#99958b` | text |
+| `ink` / `muted` | `#262522` / `#6b675f` | `#efede6` / `#99958b` | text; `ink` is also the focus ring |
 | `rule` | `#d8d3c9` | `#46443d` | borders and dividers |
-| `accent` / `accent-ink` | `#d9a441` / `#2e2516` | same | `=` key and focus ring |
+| `accent` / `accent-ink` | `#d9a441` / `#2e2516` | same | `=` key |
 | `danger` / `danger-soft` | `#a23b33` / `#f4e7e3` | `#e47d72` / `#3d2926` | errors |
 | `code` | `#e9e5dd` | `#1e1e1b` | JSON blocks in request details |
 
 Contrast (WCAG, AA needs 4.5:1 for text): `muted` on `paper` 4.77 light / 5.77 dark; `muted` on `panel` 5.17 /
-5.21; `danger` on `danger-soft` 5.42 / 4.84; `accent-ink` on `accent` 6.71. The draft's light `muted` (`#87837a`,
+5.21; `danger` on `danger-soft` 5.42 / 4.84; `accent-ink` on `accent` 6.71. Focus ring (non-text, AA needs 3:1): `ink` on `paper`, `panel` and `tape` 12.98–14.43 light, 12.6–14.73
+dark; it was `accent` until the phase 3 review measured 1.91–2.12 in light mode. The draft's light `muted` (`#87837a`,
 3.20) and `danger` (`#b24b42`, 4.37) failed and were darkened.
 
 **Changed or rejected**

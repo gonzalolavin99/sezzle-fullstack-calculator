@@ -11,8 +11,8 @@ interface KeyProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // Keys look like physical keys: solid fill and a slightly heavier bottom edge (docs/DESIGN.md).
 const base =
   'flex items-center justify-center rounded-lg border border-b-2 border-rule text-ink ' +
-  'transition-colors active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ' +
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+  'transition-colors active:translate-y-px aria-disabled:cursor-not-allowed aria-disabled:opacity-50 ' +
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink'
 
 const variants: Record<Variant, string> = {
   digit: 'h-14 bg-key font-mono text-xl hover:bg-tape-hover',

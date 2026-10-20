@@ -16,6 +16,18 @@ function type(text: string): Action[] {
 }
 
 describe('entering numbers', () => {
+  // Review finding: "-0.5" backspaced to "-0", and the next digit gave "-03".
+  it('never leaves "-0" after backspace', () => {
+    const state = run(
+      ...type('0.5'),
+      { type: 'negate' },
+      { type: 'backspace' },
+      { type: 'backspace' },
+    )
+    expect(state.input).toBe('0')
+    expect(calculatorReducer(state, { type: 'digit', digit: '3' }).input).toBe('3')
+  })
+
   it('starts at 0', () => {
     expect(initialState.input).toBe('0')
   })
@@ -199,6 +211,41 @@ describe('unary operations', () => {
     )
     expect(state).toMatchObject({ input: '3', stored: 2, operation: 'add' })
     expect(calculatorReducer(state, { type: 'equals' }).pending?.operands).toEqual([2, 3])
+  })
+
+  // Review finding: an operator here used to drop "9 +" and give 4 × 2 = 8 instead of 26.
+  it('chain with the next operator like "=" does: 9 + √16 × 2', () => {
+    const state = run(
+      ...type('9'),
+      { type: 'binary', operation: 'add' },
+      ...type('16'),
+      { type: 'unary', operation: 'sqrt' },
+      { type: 'resolved', id: 1, value: 4, at: AT },
+      { type: 'binary', operation: 'multiply' },
+    )
+    expect(state.pending).toEqual({ id: 2, operation: 'add', operands: [9, 4] })
+  })
+})
+
+describe('reusing a value', () => {
+  // Review finding: same bug as above, through a history result.
+  it('counts as the second number when an operator follows: 10 + [8] × 3', () => {
+    const state = run(
+      ...type('10'),
+      { type: 'binary', operation: 'add' },
+      { type: 'useValue', value: 8 },
+      { type: 'binary', operation: 'multiply' },
+    )
+    expect(state.pending).toEqual({ id: 1, operation: 'add', operands: [10, 8] })
+  })
+
+  it('still lets a second operator replace the first: 2 + ×', () => {
+    const state = run(
+      ...type('2'),
+      { type: 'binary', operation: 'add' },
+      { type: 'binary', operation: 'multiply' },
+    )
+    expect(state).toMatchObject({ pending: null, stored: 2, operation: 'multiply' })
   })
 })
 

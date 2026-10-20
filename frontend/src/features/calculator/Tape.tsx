@@ -22,7 +22,7 @@ export function Tape({ entries, onUse, onClear }: TapeProps) {
             type="button"
             aria-label="Clear history"
             onClick={onClear}
-            className="rounded px-2 py-1 text-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
+            className="rounded px-2 py-1 text-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-ink"
           >
             Clear
           </button>
@@ -67,11 +67,12 @@ function Line({ entry, onUse }: { entry: HistoryEntry; onUse: (value: number) =>
   return (
     <button
       type="button"
-      aria-label={`Use result ${shown}`}
       onClick={() => onUse(result)}
-      className="-mx-1 min-w-0 rounded px-1 text-left font-mono wrap-anywhere tabular-nums hover:bg-tape-hover focus-visible:outline-2 focus-visible:outline-accent"
+      // Like the keypad keys: a mouse click leaves focus where it was, so Enter still means "=".
+      onMouseDown={(event) => event.preventDefault()}
+      className="-mx-1 min-w-0 rounded px-1 text-left font-mono wrap-anywhere tabular-nums hover:bg-tape-hover focus-visible:outline-2 focus-visible:outline-ink"
     >
-      {expression} = {shown}
+      <span className="sr-only">Use result:</span> {expression} = {shown}
     </button>
   )
 }

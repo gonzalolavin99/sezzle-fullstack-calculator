@@ -421,6 +421,41 @@ explain every part of it.
   dropped from 16 to 9, the tests were re-applied and the two affected checks were redone restoring only the
   sabotaged file. R1–R4 and R10 marked done in the traceability table.
 
+### 031 — Phase 3 review and fixes (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** same session ("keep going through the phases"): run the code-reviewer before the phase 3
+  pull request and fix what it finds.
+- **Output:** the reviewer reproduced every finding in Chromium against the Go backend. Three Must fix, all real:
+  1. **Request storm.** `useCalculator`'s default `now = () => …` was a new function on every render, so any
+     re-render while a calculation was pending (the operations list arriving, "Clear history") re-ran the effect,
+     aborted the request and sent it again; each aborted request reported to the inspector, which re-rendered
+     again. The reviewer measured 771 requests in 3 s and a display stuck on "Calculating…". The default is now a
+     module-level function. Entry 027 and the code comment blamed React StrictMode for the abort; that was wrong
+     (StrictMode re-runs effects only on mount, when nothing is pending) and the comment is corrected.
+  2. **Chaining after √ or a reused value.** `9 + √16 × 2` gave 8 and `10 + [8] × 3` gave 24: the reducer used
+     `overwrite` to mean "no second number yet", but a √ result and a reused value also set it. A separate
+     `awaitingOperand` flag now says exactly that.
+  3. **Enter after clicking a history result or "Request details"** clicked it again, because only keypad keys had
+     the F5 focus fix. Both now leave focus where it was on mouse-down.
+  Should fix, all applied: keys use `aria-disabled` instead of `disabled` while pending (a disabled button dropped
+  keyboard focus to `<body>` on every calculation); the focus ring is `ink` instead of `accent` (1.91–2.12 against
+  the light backgrounds, under the 3:1 non-text minimum; now 12.6–14.7); history buttons keep the visible
+  calculation in their accessible name ("Use result: 2 + 3 = 5", WCAG 2.5.3) instead of an `aria-label` that hid
+  it; backspace no longer leaves `-0` (the next digit made `-03`); regression tests for each. Nice to have, applied:
+  advanced keys only for arity 1 or 2; DESIGN and plan wording aligned with the code.
+- **Review:** tests first for every fix, shown failing; 146 tests green, lint, Prettier and strict `tsc` clean.
+  Re-checked in Chromium: `9 + √16 × 2 = 26`, `10 + [13] × 3 = 69` with Enter after clicking the history,
+  focus stays on `=` after a calculation, ring colour `ink`. Mistakes of mine, caught: (a) when I re-broke the
+  `now` default on purpose, the `sed` pattern no longer matched (Prettier had joined the signature onto one line),
+  so the "bug" run was really the fixed code and the storm test seemed not to catch it; traced by logging renders
+  and printing the transformed hook, then redone: with the bug the test fails with 2 requests instead of 1.
+  Lesson: check that a sabotage applied before trusting a green run. (b) A JSX space inside the hidden "Use
+  result:" span was dropped from the accessible name; the space now sits outside the span. (c) My browser script
+  typed the next keys while a request was pending; the reducer ignores keys while pending (by design, F3), so it
+  now waits for each result. Not done (documented): repeating the same calculation is not announced again (the
+  status text does not change); focus after "Dismiss" falls to `<body>`; a timeout while reading a response body
+  reports `UNEXPECTED_RESPONSE`; no retry button when the operations list fails; keys typed faster than the backend
+  answers are dropped while a request is pending.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

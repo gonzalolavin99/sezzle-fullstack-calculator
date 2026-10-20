@@ -59,7 +59,9 @@ export function Keypad({ dispatch, disabled }: KeypadProps) {
             variant={key.variant}
             wide={key.wide}
             aria-label={key.name}
-            disabled={disabled && key.action.type !== 'clear'}
+            // aria-disabled, not disabled: a disabled button would drop keyboard focus to <body> on every
+            // calculation. The reducer already ignores these keys while a request is pending.
+            aria-disabled={disabled && key.action.type !== 'clear'}
             onClick={() => dispatch(key.action)}
           >
             {key.text}

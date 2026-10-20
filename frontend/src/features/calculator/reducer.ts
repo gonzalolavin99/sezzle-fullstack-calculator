@@ -33,6 +33,11 @@ export interface State {
   /** Left operand and operation waiting for the right operand. */
   stored: number | null
   operation: string | null
+  /**
+   * True right after an operator, until the second number is given (typed, √ result or a reused
+   * history value). Another operator then replaces the first instead of calculating.
+   */
+  awaitingOperand: boolean
   pending: PendingRequest | null
   followUp: FollowUp
   error: string | null
@@ -66,6 +71,7 @@ export const initialState: State = {
   overwrite: false,
   stored: null,
   operation: null,
+  awaitingOperand: false,
   pending: null,
   followUp: noFollowUp,
   error: null,
@@ -84,14 +90,22 @@ export function calculatorReducer(state: State, action: Action): State {
     case 'digit': {
       if (!/^\d$/.test(action.digit)) return state
       if (state.overwrite || state.input === '0') {
-        return { ...state, input: action.digit, overwrite: false, error: null }
+        return {
+          ...state,
+          input: action.digit,
+          overwrite: false,
+          awaitingOperand: false,
+          error: null,
+        }
       }
       if (digitCount(state.input) >= MAX_DIGITS) return state
       return { ...state, input: state.input + action.digit, error: null }
     }
 
     case 'decimal': {
-      if (state.overwrite) return { ...state, input: '0.', overwrite: false, error: null }
+      if (state.overwrite) {
+        return { ...state, input: '0.', overwrite: false, awaitingOperand: false, error: null }
+      }
       if (state.input.includes('.')) return state
       return { ...state, input: state.input + '.', error: null }
     }
@@ -99,13 +113,14 @@ export function calculatorReducer(state: State, action: Action): State {
     case 'backspace': {
       if (state.overwrite) return state
       const shorter = state.input.slice(0, -1)
-      return { ...state, input: shorter === '' || shorter === '-' ? '0' : shorter, error: null }
+      const empty = shorter === '' || shorter === '-' || shorter === '-0'
+      return { ...state, input: empty ? '0' : shorter, error: null }
     }
 
     case 'negate': {
       if (Number(state.input) === 0) return state
       const input = state.input.startsWith('-') ? state.input.slice(1) : '-' + state.input
-      return { ...state, input, error: null }
+      return { ...state, input, awaitingOperand: false, error: null }
     }
 
     case 'clear':
@@ -113,7 +128,7 @@ export function calculatorReducer(state: State, action: Action): State {
 
     case 'binary': {
       // "2 + 3 ×": calculate 2 + 3 first, then continue with ×.
-      if (state.stored !== null && state.operation && !state.overwrite) {
+      if (state.stored !== null && state.operation && !state.awaitingOperand) {
         return request(state, state.operation, [state.stored, Number(state.input)], {
           kind: 'result',
           nextOperation: action.operation,
@@ -124,6 +139,7 @@ export function calculatorReducer(state: State, action: Action): State {
         stored: Number(state.input),
         operation: action.operation,
         overwrite: true,
+        awaitingOperand: true,
         error: null,
       }
     }
@@ -148,11 +164,12 @@ export function calculatorReducer(state: State, action: Action): State {
         followUp: noFollowUp,
         history: addToHistory(state.history, entry),
       }
-      if (followUp.kind === 'unary') return shown
+      if (followUp.kind === 'unary') return { ...shown, awaitingOperand: false }
       return {
         ...shown,
         stored: followUp.nextOperation ? action.value : null,
         operation: followUp.nextOperation,
+        awaitingOperand: followUp.nextOperation !== null,
       }
     }
 
@@ -163,6 +180,7 @@ export function calculatorReducer(state: State, action: Action): State {
         ...state,
         stored: null,
         operation: null,
+        awaitingOperand: false,
         overwrite: true,
         pending: null,
         followUp: noFollowUp,
@@ -175,7 +193,13 @@ export function calculatorReducer(state: State, action: Action): State {
       return { ...state, error: null }
 
     case 'useValue':
-      return { ...state, input: String(action.value), overwrite: true, error: null }
+      return {
+        ...state,
+        input: String(action.value),
+        overwrite: true,
+        awaitingOperand: false,
+        error: null,
+      }
 
     case 'clearHistory':
       return { ...state, history: [] }

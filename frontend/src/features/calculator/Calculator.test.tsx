@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { server, TEST_API } from '../../test/server.ts'
+import { server, TEST_API, testOperations } from '../../test/server.ts'
 import { Calculator } from './Calculator.tsx'
 
 // End to end inside the frontend: keypad → reducer → hook → API client → fake backend (MSW).
@@ -16,7 +16,9 @@ describe('Calculator', () => {
       await user.click(screen.getByRole('button', { name }))
     }
 
-    expect(await screen.findByRole('button', { name: 'Use result 3' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', { name: 'Use result: 12 ÷ 4 = 3' }),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('display-value')).toHaveTextContent('3')
     expect(screen.getByText('POST /api/v1/calculate')).toBeInTheDocument()
   })
@@ -28,7 +30,9 @@ describe('Calculator', () => {
 
       await user.keyboard('12/4{Enter}')
 
-      expect(await screen.findByRole('button', { name: 'Use result 3' })).toBeInTheDocument()
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 12 ÷ 4 = 3' }),
+      ).toBeInTheDocument()
       expect(screen.getByTestId('display-value')).toHaveTextContent('3')
     })
 
@@ -53,7 +57,9 @@ describe('Calculator', () => {
       }
       await user.keyboard('{Enter}')
 
-      expect(await screen.findByRole('button', { name: 'Use result 3' })).toBeInTheDocument()
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 12 ÷ 4 = 3' }),
+      ).toBeInTheDocument()
     })
 
     it('lets Enter activate a key reached with Tab', async () => {
@@ -97,7 +103,7 @@ describe('Calculator', () => {
       await user.keyboard('2+3=')
       expect(calculator).toHaveAttribute('aria-busy', 'true')
       answer()
-      await screen.findByRole('button', { name: 'Use result 5' })
+      await screen.findByRole('button', { name: 'Use result: 2 + 3 = 5' })
       expect(calculator).toHaveAttribute('aria-busy', 'false')
     })
 
@@ -124,9 +130,9 @@ describe('Calculator', () => {
 
       await press(user, '2', 'Add', '3', 'Equals')
 
-      expect(await screen.findByRole('button', { name: 'Use result 5' })).toHaveTextContent(
-        '2 + 3 = 5',
-      )
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 2 + 3 = 5' }),
+      ).toHaveTextContent('2 + 3 = 5')
       expect(screen.getByTestId('display-value')).toHaveTextContent('5')
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
@@ -136,10 +142,12 @@ describe('Calculator', () => {
       const user = userEvent.setup()
 
       await press(user, '2', 'Add', '3', 'Multiply')
-      await screen.findByRole('button', { name: 'Use result 5' })
+      await screen.findByRole('button', { name: 'Use result: 2 + 3 = 5' })
       await press(user, '4', 'Equals')
 
-      expect(await screen.findByRole('button', { name: 'Use result 20' })).toBeInTheDocument()
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 5 × 4 = 20' }),
+      ).toBeInTheDocument()
     })
 
     it('shows a clear error for 5 ÷ 0, keeps it in the history and lets it be dismissed', async () => {
@@ -174,12 +182,14 @@ describe('Calculator', () => {
       const user = userEvent.setup()
 
       await press(user, '2', 'Power', '1', '0', 'Equals')
-      expect(await screen.findByRole('button', { name: 'Use result 1,024' })).toBeInTheDocument()
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 2 ^ 10 = 1,024' }),
+      ).toBeInTheDocument()
 
       await press(user, '1', '5', 'Percent of', '2', '0', '0', 'Equals')
-      expect(await screen.findByRole('button', { name: 'Use result 30' })).toHaveTextContent(
-        '15% of 200 = 30',
-      )
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 15% of 200 = 30' }),
+      ).toHaveTextContent('15% of 200 = 30')
     })
 
     it('reuses a result from the history and clears the history', async () => {
@@ -187,12 +197,14 @@ describe('Calculator', () => {
       const user = userEvent.setup()
 
       await press(user, '2', 'Add', '3', 'Equals')
-      await screen.findByRole('button', { name: 'Use result 5' })
+      await screen.findByRole('button', { name: 'Use result: 2 + 3 = 5' })
       await press(user, 'Clear')
       expect(screen.getByTestId('display-value')).toHaveTextContent('0')
 
-      await press(user, 'Use result 5', 'Add', '1', 'Equals')
-      expect(await screen.findByRole('button', { name: 'Use result 6' })).toBeInTheDocument()
+      await press(user, 'Use result: 2 + 3 = 5', 'Add', '1', 'Equals')
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 5 + 1 = 6' }),
+      ).toBeInTheDocument()
 
       await press(user, 'Clear history')
       expect(screen.getByText('Results appear here.')).toBeInTheDocument()
@@ -215,6 +227,66 @@ describe('Calculator', () => {
         "Can't reach the calculator service. Check that the backend is running.",
       )
       expect(screen.getByRole('button', { name: '7' })).toBeEnabled()
+    })
+  })
+
+  // Regressions found by the phase 3 review.
+  describe('review regressions', () => {
+    it('sends one request even when the page re-renders while it is pending', async () => {
+      let releaseOperations = () => {}
+      const operationsHeld = new Promise<void>((resolve) => (releaseOperations = resolve))
+      let releaseAnswer = () => {}
+      const answerHeld = new Promise<void>((resolve) => (releaseAnswer = resolve))
+      let calls = 0
+      server.use(
+        http.get(`${TEST_API}/api/v1/operations`, async () => {
+          await operationsHeld
+          return HttpResponse.json({ operations: testOperations })
+        }),
+        http.post(`${TEST_API}/api/v1/calculate`, async () => {
+          calls++
+          await answerHeld
+          return HttpResponse.json({ operation: 'add', operands: [2, 2], result: 4 })
+        }),
+      )
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await user.keyboard('2+2=')
+      // The operations list arriving now re-renders the calculator mid-request.
+      releaseOperations()
+      await screen.findByRole('button', { name: 'Square root' })
+      releaseAnswer()
+
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 2 + 2 = 4' }),
+      ).toBeInTheDocument()
+      expect(calls).toBe(1)
+    })
+
+    it('presses Equals when Enter follows a click on a history result', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await user.keyboard('2+3=')
+      await user.click(await screen.findByRole('button', { name: 'Use result: 2 + 3 = 5' }))
+      await user.keyboard('+5{Enter}')
+
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 5 + 5 = 10' }),
+      ).toBeInTheDocument()
+    })
+
+    it('presses Equals when Enter follows a click on "Request details"', async () => {
+      render(<Calculator baseUrl={TEST_API} />)
+      const user = userEvent.setup()
+
+      await user.click(screen.getByText('Request details'))
+      await user.keyboard('2+2{Enter}')
+
+      expect(
+        await screen.findByRole('button', { name: 'Use result: 2 + 2 = 4' }),
+      ).toBeInTheDocument()
     })
   })
 

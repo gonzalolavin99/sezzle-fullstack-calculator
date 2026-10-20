@@ -4,7 +4,10 @@ import type { Exchange } from '../../api/index.ts'
 export function ApiInspector({ exchange }: { exchange: Exchange | null }) {
   return (
     <details className="rounded-xl bg-panel px-4 py-3 text-sm">
-      <summary className="cursor-pointer text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-accent">
+      <summary
+        onMouseDown={(event) => event.preventDefault()}
+        className="cursor-pointer text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-ink"
+      >
         Request details
       </summary>
 
