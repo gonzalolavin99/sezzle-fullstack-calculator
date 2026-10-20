@@ -328,6 +328,21 @@ explain every part of it.
   and the test used MSW v2's `onUnhandledRequest`, which v3 renamed to `onUnhandledFrame` (found by `tsc`, since
   Vitest does not type-check).
 
+### 026 — F3: calculator reducer (Claude Code)
+- **Prompt (summary):** "Let's go" (task F3).
+- **Output:** tests first (`reducer.test.ts`, 39 cases; `format.test.ts`, 22 cases), shown failing; then
+  `features/calculator/reducer.ts`, a pure state machine. It never does math: `=` (and a chained operator, or a
+  unary operation such as √) produces `pending: { id, operation, operands }` for a hook to send to the backend in
+  F4, which then dispatches `resolved` or `failed`. Covered: digits, single decimal point, 15-digit limit,
+  backspace, sign toggle (`±` fills the keypad slot freed when the duplicate `%` was removed), clear, chained
+  operations, unary operations that keep a waiting binary operation, keys ignored while a request is pending,
+  late answers ignored by request ID, errors kept in a 20-entry history whose timestamp is passed in the action so
+  the reducer stays pure. `format.ts` formats results for display only (12 significant digits, scientific notation
+  for very large or small values, `0.30000000000000004` shown as `0.3`) and writes expressions (`12 ÷ 4`,
+  `15% of 200`, `√144`, and a readable fallback for an operation the UI does not know).
+- **Review:** all tests passed on the first run, so the pending guard was broken on purpose to confirm the tests
+  catch it (8 failures), then restored. 78 frontend tests, coverage 98.4%, lint and strict `tsc` green.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
