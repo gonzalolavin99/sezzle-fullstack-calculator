@@ -261,7 +261,7 @@ Estimated times are for Claude Code + Gonzalo together.
 - [x] **B6. Calculate use case** in `internal/app`: looks up the operation and runs it. Arity is validated once, inside each operation (`checkOperands`); the use case tests cover it.
 - [x] **B7. HTTP handlers.** `POST /api/v1/calculate`, `GET /api/v1/operations`, `GET /healthz` using the standard library router with method patterns.
   *Learn:* `http.Handler`, `http.HandlerFunc`, routing patterns like `"POST /api/v1/calculate"`, compared with Express.
-- [ ] **B8. Request decoding and validation.** Max body size, `DisallowUnknownFields`, required fields, JSON errors mapped to `INVALID_REQUEST`.
+- [x] **B8. Request decoding and validation.** Max body size, `DisallowUnknownFields`, required fields, JSON errors mapped to `INVALID_REQUEST`.
 - [ ] **B9. Error mapping.** One function maps domain errors to status codes and JSON bodies (section 3 table).
 - [ ] **B10. Middleware.** Request ID, structured logging with `log/slog`, panic recovery, CORS for local dev.
   *Learn:* middleware as a function that wraps a handler.

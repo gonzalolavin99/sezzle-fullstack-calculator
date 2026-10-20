@@ -191,6 +191,19 @@ explain every part of it.
   validation) and B9 (error mapping). Until B9, a domain error answers a provisional 500 `INTERNAL_ERROR`, marked in
   a comment so it is not forgotten.
 
+### 016 — B8: request decoding and validation (Claude Code)
+- **Prompt (summary):** "Do it" (task B8).
+- **Output:** test first (`request_test.go`, 14 invalid bodies), shown failing at runtime: the B7 handler accepted
+  two JSON objects, unknown fields and oversized bodies with 200, and turned `[1, null]` into `[1, 0]`, which
+  surfaced as a division by zero. Then `request.go`: `MaxBytesReader` (64 KiB), `DisallowUnknownFields`, a check
+  for a single JSON object, required `operation` and `operands` (pointer fields tell missing/null from zero),
+  `null`/string/`1e999` operands → 400 `INVALID_OPERAND`, everything else → 400 `INVALID_REQUEST`. Added an
+  `apiError` type that B9 will reuse for domain errors.
+- **Review:** two mistakes caught by the compiler and tests: the old request struct was left in `json.go`
+  (declared twice), and Claude Code assumed `encoding/json` reports an element type error as field `operands`,
+  but it reports `operands.0`; the rule now matches the real format. Coverage 97.3%, lint clean. Not added:
+  a `Content-Type` requirement (stricter, but harder to try with curl, and not in the plan).
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

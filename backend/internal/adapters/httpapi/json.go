@@ -5,12 +5,7 @@ import (
 	"net/http"
 )
 
-// Request and response bodies. Struct tags set the JSON field names.
-
-type calculateRequest struct {
-	Operation string    `json:"operation"`
-	Operands  []float64 `json:"operands"`
-}
+// Response bodies (the request body lives in request.go). Struct tags set the JSON field names.
 
 type calculateResponse struct {
 	Operation string    `json:"operation"`
