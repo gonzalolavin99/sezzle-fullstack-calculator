@@ -511,6 +511,23 @@ explain every part of it.
   green again after restarting. 146 unit tests unchanged, lint clean. Locally the container's preinstalled Chromium
   (an older build) ran the newer runner without problems; CI installs the matching browser.
 
+### 036 — D4: GitHub Actions CI (Claude Code)
+- **Prompt (summary):** same session, last task of phase 4 (done after D5, see entry 035).
+- **Output:** `.github/workflows/ci.yml`, on pushes to `main` and on pull requests, with `contents: read` and
+  cancel-in-progress per branch. Job `backend`: Go from `go.mod`, golangci-lint installed with `make tools` (the
+  version pinned in the Makefile, one source of truth), `make lint-backend`, `go test -race` with atomic coverage,
+  summary and HTML report uploaded. Job `frontend`: Node 24, `npm ci`, `npm run lint`, `npm run coverage`, report
+  uploaded. Job `e2e` (after both): `docker compose up --build -d --wait` on a clean runner, the same command a
+  reviewer runs, then Playwright with its own Chromium; service logs and the Playwright report on failure;
+  `docker compose down` always. Action versions (`checkout`, `setup-go`, `setup-node`, `upload-artifact` v7) read
+  from the repositories' tags with `git ls-remote`, because the GitHub API was not available in this session.
+- **Review:** `actionlint` 1.7.12 (run in Docker, with shellcheck) reports nothing. The backend job's commands were run
+  locally first: lint 0 issues, race tests green, 96.4% coverage. A first local lint run failed because an older
+  golangci-lint (2.5.0) already on this container's `PATH` came first; in CI `$GITHUB_PATH` prepends, and with the
+  same order locally it passed. The frontend and e2e steps were already verified in D2, D3 and D5. Not verified yet:
+  a real run on GitHub. The workflow only runs on pull requests and `main`, so the first run comes with the phase 4
+  pull request.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

@@ -1,0 +1,107 @@
+# Lint, type-check and test both layers, then build the Docker stack and run the end-to-end smoke test.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A new push to the same branch or PR cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint, race tests, coverage)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.mod
+      # Same pinned version as local development (GOLANGCI_LINT_VERSION in the Makefile).
+      - name: Install golangci-lint
+        working-directory: .
+        run: |
+          make tools
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Lint and format check
+        working-directory: .
+        run: make lint-backend
+      - name: Test with the race detector and coverage
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Coverage summary
+        run: |
+          go tool cover -func=coverage.out | tail -n 1
+          go tool cover -html=coverage.out -o coverage.html
+      - uses: actions/upload-artifact@v7
+        with:
+          name: backend-coverage
+          path: |
+            backend/coverage.out
+            backend/coverage.html
+
+  frontend:
+    name: Frontend (lint, type-check, tests, coverage)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: ESLint, Prettier check and strict tsc
+        run: npm run lint
+      - name: Tests with coverage
+        run: npm run coverage
+      - uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+  e2e:
+    name: Docker build and end-to-end smoke test
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # The same command a reviewer runs on a fresh clone; --wait returns once both healthchecks pass.
+      - name: Build and start the stack
+        run: docker compose up --build -d --wait
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Playwright and Chromium
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run the smoke test
+        working-directory: frontend
+        run: npm run e2e
+      - name: Service logs
+        if: failure()
+        run: docker compose logs
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+      - name: Stop the stack
+        if: always()
+        run: docker compose down
