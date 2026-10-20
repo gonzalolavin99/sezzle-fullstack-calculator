@@ -286,7 +286,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 4 — Docker, CI and end-to-end (≈45 min)
 
-- [ ] **D1. Backend Dockerfile.** Multi-stage build, static binary, small non-root runtime image, healthcheck.
+- [x] **D1. Backend Dockerfile.** Multi-stage build, static binary, small non-root runtime image, healthcheck.
 - [ ] **D2. Frontend Dockerfile.** Multi-stage: build with Node, serve with nginx; nginx proxies `/api` to the backend so there is no CORS in production.
 - [ ] **D3. `docker-compose.yml`.** Both services, healthchecks, app on `http://localhost:8080`.
   *Done when:* fresh clone + `docker compose up --build` works on a clean machine.

@@ -1,0 +1,7 @@
+# Only the Go sources are needed to build the image.
+bin/
+coverage.out
+coverage.html
+*.test
+Dockerfile
+.dockerignore

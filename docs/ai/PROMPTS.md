@@ -456,6 +456,20 @@ explain every part of it.
   reports `UNEXPECTED_RESPONSE`; no retry button when the operations list fails; keys typed faster than the backend
   answers are dropped while a request is pending.
 
+### 032 — D1: backend Dockerfile (Claude Code)
+- **Prompt (summary):** "Sigue" after the phase 3 PR, then "just push" (permission to push without asking).
+  Phase 3 PR opened; Phase 4 started on `chore/docker-ci`, stacked on `feat/frontend` until that PR is merged.
+- **Output:** `backend/Dockerfile`: build stage `golang:1.27.3-alpine3.24` (`go.mod` copied first for layer
+  caching, `CGO_ENABLED=0`, `-trimpath -ldflags="-s -w"`), runtime `alpine:3.24.2` with a fixed unprivileged user
+  (uid 10001), `HEALTHCHECK` with busybox `wget` on `/healthz`, exec-form `ENTRYPOINT`. `backend/.dockerignore`.
+  Image tags were checked on Docker Hub, not taken from memory.
+- **Review:** image 23.1 MB; container `healthy`, runs as `uid=10001(app)`; `POST /api/v1/calculate` returns 2.5 and
+  the 422 `DIVISION_BY_ZERO`; `docker stop` takes 0.2 s and logs "shutting down" then "server stopped" with exit
+  code 0 (the binary is PID 1 and gets SIGTERM). Rejected: distroless (smaller, but no `wget`, so the healthcheck
+  would need a new `healthcheck` subcommand in the Go binary). Known: the healthcheck adds one `/healthz` log line
+  every 10 s. In this cloud container the Docker daemon had to be started by hand (the equivalent of starting
+  Docker Desktop).
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
