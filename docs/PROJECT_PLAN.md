@@ -258,7 +258,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 2 — Backend application and HTTP (≈1 h)
 
-- [ ] **B6. Calculate use case** in `internal/app`: validates arity, looks up the operation, runs it.
+- [x] **B6. Calculate use case** in `internal/app`: looks up the operation and runs it. Arity is validated once, inside each operation (`checkOperands`); the use case tests cover it.
 - [ ] **B7. HTTP handlers.** `POST /api/v1/calculate`, `GET /api/v1/operations`, `GET /healthz` using the standard library router with method patterns.
   *Learn:* `http.Handler`, `http.HandlerFunc`, routing patterns like `"POST /api/v1/calculate"`, compared with Express.
 - [ ] **B8. Request decoding and validation.** Max body size, `DisallowUnknownFields`, required fields, JSON errors mapped to `INVALID_REQUEST`.

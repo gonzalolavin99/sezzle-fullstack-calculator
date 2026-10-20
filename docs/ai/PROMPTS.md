@@ -170,6 +170,16 @@ explain every part of it.
 - **Review:** tests, coverage (100%) and lint green in my terminal. Lesson: probe floating-point choices over a
   range of inputs, not a few hand-picked ones.
 
+### 014 — B6: calculate use case (Claude Code)
+- **Prompt (summary):** "Merge PR 2 (normal merge) and continue with B6."
+- **Output:** PR 2 merged with a merge commit; branch `feat/backend-http` for Phase 2. Test first
+  (`internal/app/calculate_test.go`, `internal/calculator/defaults_test.go`), shown failing in both packages, then
+  `calculator.DefaultOperations()` (the one list to extend with a new operation) and `app.Calculator` with
+  `Calculate` (lookup, apply, wrap the error with the operation name) and `Operations` (name and arity, sorted).
+- **Review:** both packages at 100% coverage, lint clean. Deviation from the plan text, noted in the plan: the
+  use case does not re-validate arity, because each operation already does it in `checkOperands`; one source of
+  truth. Tests use the real registry instead of mocks because the domain is pure and fast.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
