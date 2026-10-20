@@ -1,5 +1,6 @@
 import type { Dispatch } from 'react'
 import { Key } from '../../components/Key.tsx'
+import { KEYBOARD_HINT } from './keyboard.ts'
 import type { Action } from './reducer.ts'
 
 interface KeyDef {
@@ -50,19 +51,24 @@ interface KeypadProps {
 
 export function Keypad({ dispatch, disabled }: KeypadProps) {
   return (
-    <div className="grid grid-cols-4 gap-2">
-      {keys.map((key) => (
-        <Key
-          key={key.name ?? key.text}
-          variant={key.variant}
-          wide={key.wide}
-          aria-label={key.name}
-          disabled={disabled && key.action.type !== 'clear'}
-          onClick={() => dispatch(key.action)}
-        >
-          {key.text}
-        </Key>
-      ))}
+    <div role="group" aria-label="Keypad" aria-describedby="keyboard-hint">
+      <div className="grid grid-cols-4 gap-2">
+        {keys.map((key) => (
+          <Key
+            key={key.name ?? key.text}
+            variant={key.variant}
+            wide={key.wide}
+            aria-label={key.name}
+            disabled={disabled && key.action.type !== 'clear'}
+            onClick={() => dispatch(key.action)}
+          >
+            {key.text}
+          </Key>
+        ))}
+      </div>
+      <p id="keyboard-hint" className="mt-3 text-center text-sm text-muted">
+        {KEYBOARD_HINT}
+      </p>
     </div>
   )
 }

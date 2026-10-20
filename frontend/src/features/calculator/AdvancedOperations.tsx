@@ -30,7 +30,7 @@ export function AdvancedOperations({
 
   const advanced = operations.filter((op) => !BASIC_OPERATIONS.has(op.name))
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div role="group" aria-label="More operations" className="grid grid-cols-3 gap-2">
       {advanced.map((op) => {
         const label = advancedLabel(op.name)
         return (

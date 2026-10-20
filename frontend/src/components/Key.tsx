@@ -26,6 +26,9 @@ export function Key({ variant = 'digit', wide = false, className = '', ...props 
     <button
       type="button"
       className={`${base} ${variants[variant]} ${wide ? 'col-span-2' : ''} ${className}`}
+      // A mouse click does not move focus to the key, so a later Enter means "=" and does not
+      // press the clicked key again. Tab still focuses keys for keyboard users.
+      onMouseDown={(event) => event.preventDefault()}
       {...props}
     />
   )

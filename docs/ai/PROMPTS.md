@@ -359,6 +359,29 @@ explain every part of it.
   layout at a narrow width and two columns in dark mode at 1280px. A first screenshot made the keys look grey;
   computed styles showed the right colors (captured mid-transition), so nothing was changed.
 
+### 028 — F5: physical keyboard and accessibility (Claude Code)
+- **Prompt (summary):** "Start F5 with /next-task, and keep going through the remaining phases if you can."
+- **Output:** tests first (`keyboard.test.ts`, 21 table-driven cases for `keyToAction`; 7 new `Calculator` tests:
+  typing `12/4{Enter}`, Backspace and Escape, Enter after a mouse click, Enter on a key reached with Tab, the
+  result announcement, `aria-busy`, named groups), shown failing; then `keyboard.ts` (a pure function from a key
+  to a reducer action: digits, `.` and `,`, `+ - * /`, `Enter` and `=`, `Backspace`, `Escape`; keys pressed with
+  Ctrl, Cmd or Alt are left to the browser) and `useKeyboard.ts` (one `keydown` listener on `window`, removed on
+  unmount). Accessibility: the display value no longer has `aria-live` (it read every digit); a hidden
+  `role="status"` region announces each result once (`12 ÷ 4 = 3`), errors stay with the banner's
+  `role="alert"`; the calculator section has `aria-busy` while a request is pending; the keypad and the advanced
+  keys are named groups, and a visible keyboard hint describes the keypad (`aria-describedby`).
+- **Review:** 124 tests green, coverage 94.9%, lint, Prettier and strict `tsc` clean. One bug found while
+  designing, before it shipped: after a mouse click the key keeps focus, so Enter would press that key again
+  instead of `=`. Fixed in `Key` (mouse-down does not move focus; Tab still does) and in the hook (Enter on a
+  focused button or `<summary>` keeps its native meaning). The fix was removed on purpose to confirm the test
+  fails without it. The busy-state test first relied on the fake backend being slower than the assertion, so it
+  now holds the response until the test releases it. Checked in Chromium (Playwright) against the real Go
+  backend: `12/4 Enter` shows 3 and is announced, `5/0=` shows the alert, click 7 × 6 then Enter gives 42, a
+  Tab-focused key shows the focus ring. The hint first showed the typographic minus `−`; changed to the `-` key
+  people actually press. Not done: `aria-keyshortcuts` on each key (`+` is the separator in its syntax, so the
+  plus key cannot be written cleanly); advanced operations have no shortcuts (their list comes from the API).
+  This session ran in a Linux cloud container, not on Windows, and pushed to the branch the environment assigns.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

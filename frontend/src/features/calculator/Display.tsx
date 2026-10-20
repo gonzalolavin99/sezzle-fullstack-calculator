@@ -19,7 +19,6 @@ export function Display({ state }: { state: State }) {
       </p>
       <p
         data-testid="display-value"
-        aria-live="polite"
         className={`mt-1 truncate font-mono tabular-nums ${
           pending ? 'text-2xl leading-[3rem] text-muted' : 'text-5xl leading-tight'
         }`}
