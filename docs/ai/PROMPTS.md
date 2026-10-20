@@ -558,6 +558,13 @@ explain every part of it.
   default already sits above the backend limit, and a 100 KB body now gets the backend's JSON `INVALID_REQUEST`
   (checked). A comment in the template says why.
 
+### 038 — First CI run (GitHub Actions)
+- **Prompt (summary):** "What do we do meanwhile? Explain it more simply."
+- **Output:** the first run on PR #5 passed all three jobs on clean GitHub runners: backend (lint, race tests,
+  coverage) in 2 min, frontend in 26 s, and Docker build plus the Playwright smoke test in 1 min 16 s. That run is
+  the clean-machine check D3 and R13 were waiting for, so both are now marked done; R9 too (lint runs in CI).
+- **Review:** checked the check runs on the PR head before changing the docs.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

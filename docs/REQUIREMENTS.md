@@ -65,10 +65,10 @@ Every row must be ✅ before submitting. Claude Code updates this table as tasks
 | R6 | REST endpoints for operations | `backend/internal/adapters/httpapi` | ✅ |
 | R7 | Backend validation and edge cases | domain errors + handler tests | ✅ |
 | R8 | JSON responses (success and errors) | handler + OpenAPI spec | ✅ |
-| R9 | Clean, idiomatic code | golangci-lint, ESLint, Prettier in CI | ⬜ |
+| R9 | Clean, idiomatic code | golangci-lint, ESLint, Prettier and strict `tsc` in CI | ✅ |
 | R10 | Unit tests, both layers | `go test` (backend 96.4%), Vitest (frontend 98.8%) | ✅ |
 | R11 | Coverage report | `make coverage`, CI artifact, README badge | ⬜ |
 | R12 | README: setup, run, API examples, design decisions | `README.md` | ⬜ |
-| R13 | Dockerfile(s) running both together | `docker compose up --build`; built and run in CI (`e2e` job) | ⬜ (pending the first CI run) |
+| R13 | Dockerfile(s) running both together | `docker compose up --build`; built and run in CI (`e2e` job) | ✅ |
 | R14 | Prompts shared | `docs/ai/PROMPTS.md` | ⬜ |
 | R15 | Pushed to a public Git repo, link submitted | GitHub | ⬜ |
