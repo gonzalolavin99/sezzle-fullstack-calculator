@@ -180,6 +180,17 @@ explain every part of it.
   use case does not re-validate arity, because each operation already does it in `checkOperands`; one source of
   truth. Tests use the real registry instead of mocks because the domain is pure and fast.
 
+### 015 — B7: HTTP handlers (Claude Code)
+- **Prompt (summary):** "Let's go" (task B7).
+- **Output:** test first (`handlers_test.go` with `httptest`: health, operations list, calculate for binary,
+  unary and decimal results, and 405 with `Allow: POST` for a wrong method), shown failing, then
+  `internal/adapters/httpapi`: `router.go` (standard library `ServeMux` with method patterns), `handlers.go` and
+  `json.go` (DTOs with struct tags, `writeJSON`, `writeError`). `GET /api/v1/operations` returns
+  `{"operations":[{"name","arity"}]}`; an object leaves room for more fields later.
+- **Review:** tests and lint green; adapter coverage 85.3% because the error branches belong to B8 (request
+  validation) and B9 (error mapping). Until B9, a domain error answers a provisional 500 `INTERNAL_ERROR`, marked in
+  a comment so it is not forgotten.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
