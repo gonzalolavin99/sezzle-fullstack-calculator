@@ -55,6 +55,15 @@ explain every part of it.
   S2 and F1 so each commit has one purpose.
 - **Review:** Checked the tree, that `START_HERE.md` is still ignored, and that every new file is stored with LF.
 
+### 004 — Harness adjustments (Claude Code)
+- **Prompt (summary):** Stop asking check-for-understanding questions and just explain each step, to save time.
+  Remove Claude Code as a co-author from the commits.
+- **Output:** removed the `Co-Authored-By` trailer from the two existing commits (history rewritten and
+  force-pushed while I was the only user of the repo); updated `CLAUDE.md` and the `next-task` skill so
+  there are no check questions and no co-author trailers.
+- **Review:** Confirmed that the rewritten commits have the same content (empty diff) and no trailers on GitHub.
+  AI usage stays fully documented in this log and in `CLAUDE.md`.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
