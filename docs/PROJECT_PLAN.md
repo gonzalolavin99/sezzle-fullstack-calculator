@@ -265,7 +265,7 @@ Estimated times are for Claude Code + Gonzalo together.
 - [x] **B9. Error mapping.** One function maps domain errors to status codes and JSON bodies (section 3 table).
 - [x] **B10. Middleware.** Request ID, structured logging with `log/slog`, panic recovery, CORS for local dev.
   *Learn:* middleware as a function that wraps a handler.
-- [ ] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
+- [x] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
   *Learn:* `context`, goroutines and channels — just enough to understand graceful shutdown.
 - [ ] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
   *Done when:* backend coverage ≥ 85%, `go test -race ./...` clean (runs in CI on Linux).

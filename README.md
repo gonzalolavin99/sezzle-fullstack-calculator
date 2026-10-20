@@ -25,6 +25,23 @@ only uses commands that work in both POSIX `sh` and Windows `cmd.exe`.
 
 ## Running without Docker
 
+### Backend
+
+```bash
+make dev-backend          # or: cd backend && go run ./cmd/server
+```
+
+The API listens on `http://localhost:8080`. Configuration comes from environment variables:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PORT` | `8080` | TCP port to listen on |
+| `ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins allowed by CORS (local frontend) |
+| `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`; logs are JSON lines on stdout |
+
+Invalid values stop the server at startup with a clear message. `Ctrl+C` or `SIGTERM` shuts it down gracefully,
+giving in-flight requests up to 10 seconds to finish.
+
 ## Tests and coverage
 
 ## API reference

@@ -224,6 +224,21 @@ explain every part of it.
   instead of adding `rs/cors` or a router package, because each piece is a few lines and the standard library is
   preferred. Middleware is wired in B11.
 
+### 019 — B11: server wiring and first live run (Claude Code)
+- **Prompt (summary):** "Let's go" (task B11).
+- **Output:** test first (`platform/config_test.go`: defaults, custom values, origin list parsing, invalid port
+  and log level; `cmd/server/main_test.go`: invalid config fails, cancelling the context shuts the server down
+  cleanly), shown failing; then `platform/config.go` (`LoadConfig` takes `getenv` as a parameter),
+  `platform/logger.go` (JSON `slog`) and `cmd/server/main.go` (`main` only calls `run`; `run` wires registry →
+  use case → handler → middleware, sets server timeouts including `ReadHeaderTimeout`, and shuts down gracefully
+  on SIGINT/SIGTERM with `signal.NotifyContext`, a goroutine, a channel and `select`). README "Running without
+  Docker → Backend" section with the environment variables.
+- **Review:** all tests and lint green. Then a live run in my terminal: started the server with
+  `make dev-backend`, called `/healthz`, `/api/v1/operations` and `/api/v1/calculate` with `curl.exe`
+  (2.5, 422 `DIVISION_BY_ZERO`, 422 `INVALID_OPERAND`, 400 for a null operand, 405 for GET), checked one JSON log
+  line per request with its request ID, and stopped it with Ctrl+C ("shutting down" → "server stopped"). Found:
+  the 405 (and 404) bodies are plain text from the router, not JSON; to fix in B12.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
