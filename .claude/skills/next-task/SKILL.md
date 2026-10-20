@@ -15,5 +15,5 @@ Work on task $ARGUMENTS if given; otherwise pick the first unchecked task in `do
    `docs/REQUIREMENTS.md` if a requirement is now met, and update the README if commands or behavior changed.
 6. **Log AI usage:** append an entry to `docs/ai/PROMPTS.md` (prompt, output, review notes).
 7. **Commit** with a Conventional Commit message on the current phase branch.
-8. **Wrap up (in Spanish):** what changed, how to run it, and one short question to check understanding.
-   Wait for Gonzalo's answer before starting the next task.
+8. **Wrap up (in Spanish):** what changed and how to run it. No check-for-understanding question; Gonzalo
+   says when to start the next task.

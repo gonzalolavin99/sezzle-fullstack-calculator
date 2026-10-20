@@ -1,2 +1,37 @@
 # Personal kickoff notes (not part of the deliverable)
 START_HERE.md
+
+# Go
+backend/bin/
+*.exe
+*.test
+*.out
+coverage.html
+go.work
+go.work.sum
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+frontend/playwright/.cache/
+*.local
+*.tsbuildinfo
+*.log
+
+# Environment files (configuration comes from env vars; never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings (shared harness lives in .claude/skills and .claude/agents)
+.claude/settings.local.json

@@ -197,7 +197,7 @@ If a draft is used, log it in `docs/ai/PROMPTS.md`.
 | Unit tests | `go test`, table-driven | Vitest + React Testing Library |
 | HTTP tests | `net/http/httptest` | MSW to mock the API |
 | End-to-end | — | Playwright smoke test against Docker Compose |
-| Race detector | `go test -race` | — |
+| Race detector | `go test -race` (CI on Linux; needs cgo, not available on a default Windows setup) | — |
 | Coverage | `-coverprofile` + HTML report | Vitest v8 coverage |
 | Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc --noEmit` |
 | CI | GitHub Actions: lint → test → coverage → docker build | same workflow |
@@ -237,11 +237,11 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 0 — Setup (≈30 min)
 
-- [ ] **S1. Create the repo and skeleton.** Folders from section 2, `.gitignore`, `.editorconfig`, MIT license, empty README with section headings.
+- [x] **S1. Create the repo and skeleton.** Folders from section 2, `.gitignore`, `.editorconfig`, MIT license, empty README with section headings.
   *Done when:* repo pushed to GitHub, first commit `chore: initial project skeleton`.
-- [ ] **S2. Install and verify toolchains.** Latest stable Go, Node LTS, Docker. Record versions in README.
+- [x] **S2. Install and verify toolchains.** Latest stable Go, Node LTS, Docker. Record versions in README.
   *Learn:* `go mod init`, what a Go module is, compared with `package.json`.
-- [ ] **S3. Makefile.** Targets `dev`, `test`, `coverage`, `lint`, `fmt`, `docker-up`.
+- [x] **S3. Makefile.** Targets `dev`, `test`, `coverage`, `lint`, `fmt`, `docker-up`.
   *Done when:* `make help` lists every target.
 
 ### Phase 1 — Backend domain (≈1 h)
@@ -268,12 +268,13 @@ Estimated times are for Claude Code + Gonzalo together.
 - [ ] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
   *Learn:* `context`, goroutines and channels — just enough to understand graceful shutdown.
 - [ ] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
-  *Done when:* backend coverage ≥ 85%, `go test -race ./...` clean.
+  *Done when:* backend coverage ≥ 85%, `go test -race ./...` clean (runs in CI on Linux).
 - [ ] **B13. OpenAPI spec** in `backend/api/openapi.yaml` matching the real behavior.
 
 ### Phase 3 — Frontend (≈1.5 h)
 
 - [ ] **F1. Scaffold.** Vite React TS, strict TypeScript, ESLint, Prettier, Vitest, RTL, Tailwind with design tokens from `docs/DESIGN.md`.
+  The `lint` npm script must run `eslint`, `prettier --check` and `tsc --noEmit`, so `make lint` matches the docs.
 - [ ] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
 - [ ] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
 - [ ] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).

@@ -15,6 +15,12 @@ one CI workflow and one `docker-compose.yml`.
   no web framework.
 - Frontend uses Vite for fast builds and Vitest for tests.
 
+## Third-party tools and dependencies
+One line each, as required by `CLAUDE.md`.
+
+- `golangci-lint` v2.15.0 (dev tool, not a module dependency): runs `go vet`, `staticcheck`, `errcheck` and the
+  `gofmt` check in one command, locally (`make tools`, `make lint`) and in CI.
+
 ## Consequences
 - One clone, one command to run everything; easy to review.
 - No framework means fewer dependencies and more idiomatic Go, at the cost of writing a little middleware by hand.
