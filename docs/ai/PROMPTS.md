@@ -124,6 +124,17 @@ explain every part of it.
   `.codex/`) that was not created by Claude Code. I asked to remove it from the repo; it is now untracked and
   ignored, and the local copy stays on my machine.
 
+### 010 — B3: basic operations (Claude Code)
+- **Prompt (summary):** "Remove AGENTS.md, .agents/ and .codex/ from the repo and continue with B3."
+- **Output:** Codex files untracked with `git rm --cached` and added to `.gitignore` (local copies kept; they
+  remain in the history of one earlier commit). Test first: `basic_test.go`, one table with 30 cases for add,
+  subtract, multiply and divide (integers, zero, negatives, decimals including `0.1 + 0.2`, large but finite
+  numbers, divide by `0` and `-0`, NaN/Inf operands, wrong operand count), shown failing; then `basic.go`
+  (four empty-struct operations) and `operands.go` (`checkOperands`: arity and finite checks shared by all
+  operations, so `Apply` never panics on a short slice).
+- **Review:** package coverage 100% (target ≥ 95%), `golangci-lint` clean. Overflow to `Inf` (for example
+  `1e308 * 10`) is deliberately left to B5, the shared result guard; B3 tests only use large values that stay finite.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

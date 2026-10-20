@@ -250,7 +250,7 @@ Estimated times are for Claude Code + Gonzalo together.
   *Learn:* Go errors are values; `errors.Is` and `fmt.Errorf("%w")` vs `try/catch` in TypeScript.
 - [x] **B2. Operation interface and registry.** Interface from section 2, registry with lookup by name and a sorted list.
   *Learn:* Go interfaces are satisfied implicitly — no `implements` keyword.
-- [ ] **B3. Basic operations, test first.** add, subtract, multiply, divide with table-driven tests, including zero, negatives, decimals, very large numbers and `NaN`/`Inf` inputs.
+- [x] **B3. Basic operations, test first.** add, subtract, multiply, divide with table-driven tests, including zero, negatives, decimals, very large numbers and `NaN`/`Inf` inputs.
   *Done when:* `go test ./internal/calculator/...` passes, coverage ≥ 95%.
   *Learn:* table-driven tests and `t.Run` subtests.
 - [ ] **B4. Advanced operations, test first.** power, sqrt, percentage with the edge cases in section 3.
