@@ -42,6 +42,18 @@ The API listens on `http://localhost:8080`. Configuration comes from environment
 Invalid values stop the server at startup with a clear message. `Ctrl+C` or `SIGTERM` shuts it down gracefully,
 giving in-flight requests up to 10 seconds to finish.
 
+### Frontend
+
+```bash
+cd frontend && npm install    # once
+make dev-frontend             # or: cd frontend && npm run dev
+```
+
+Vite serves the app on `http://localhost:5173`. Other scripts: `npm test`, `npm run coverage`, `npm run lint`
+(ESLint, Prettier check and strict `tsc`), `npm run format`, `npm run build`.
+
+> On Windows PowerShell with script execution disabled, call `npm.cmd` instead of `npm`. `make` is not affected.
+
 ## Tests and coverage
 
 ```bash

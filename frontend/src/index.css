@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens from docs/DESIGN.md (taken from the v0 visual draft).
+ * Values live in CSS variables so dark mode can swap them; @theme inline exposes them as
+ * Tailwind colors, so components use bg-paper, text-ink, border-rule and so on.
+ */
+:root {
+  color-scheme: light;
+  --paper: #eeece7;
+  --panel: #f7f5f0;
+  --tape: #faf8f2;
+  --tape-hover: #f1eee6;
+  --key: #f4f1eb;
+  --operator: #e8e4dc;
+  --ink: #262522;
+  --muted: #87837a;
+  --rule: #d8d3c9;
+  --accent: #d9a441;
+  --accent-ink: #2e2516;
+  --danger: #b24b42;
+  --danger-soft: #f4e7e3;
+  --code: #e9e5dd;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #1b1b19;
+    --panel: #242421;
+    --tape: #292824;
+    --tape-hover: #33312b;
+    --key: #2b2a26;
+    --operator: #36342e;
+    --ink: #efede6;
+    --muted: #99958b;
+    --rule: #46443d;
+    --danger: #e47d72;
+    --danger-soft: #3d2926;
+    --code: #1e1e1b;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-panel: var(--panel);
+  --color-tape: var(--tape);
+  --color-tape-hover: var(--tape-hover);
+  --color-key: var(--key);
+  --color-operator: var(--operator);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-code: var(--code);
+
+  /* System font stacks: no web font downloads. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+body {
+  @apply bg-paper font-sans text-ink antialiased;
+}

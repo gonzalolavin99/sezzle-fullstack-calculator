@@ -283,6 +283,22 @@ explain every part of it.
   Left as known minor points: case-insensitive JSON keys (documented in the spec), `Recover` after headers were
   already written.
 
+### 023 — F1: frontend scaffold (Claude Code)
+- **Prompt (summary):** "Merge PR 3 (normal merge) and continue with F1."
+- **Output:** PR 3 merged; branch `feat/frontend`. Checked current versions on the npm registry and their peer
+  dependencies before pinning: TypeScript 7.0 is the latest, but `typescript-eslint` 8.72 supports `<6.1.0`, so
+  TypeScript is pinned to `~6.0.3`. Generated the official `create-vite` react-ts template in a scratch folder and
+  copied only its config (`tsconfig*`, `vite.config.ts`, `index.html`); added `"strict": true` (the template does
+  not enable it) and `noUncheckedIndexedAccess`. Added Tailwind 4 with the `docs/DESIGN.md` tokens as CSS variables
+  exposed through `@theme inline` (dark mode swaps the variables), Vitest + jsdom + Testing Library, ESLint flat
+  config + Prettier, npm scripts matching the Makefile, a placeholder `App` and one smoke test. ADR 0001 lists
+  each new dependency with a one-line reason; README "Running without Docker → Frontend" added.
+- **Review:** in my terminal: test passes, `make lint-frontend` (ESLint, Prettier check, strict `tsc`) and
+  `npm run build` pass, `npm install` reported 0 vulnerabilities. Checked in a browser that the tokens apply in
+  both light and dark mode. Issues met: PowerShell blocked `npm.ps1` (script execution policy), so commands use
+  `npm.cmd` (the execution policy was not changed); the copied `tsconfig.json` failed the Prettier check until
+  formatted. Kept ESLint although the new Vite template ships `oxlint`, because the plan and `CLAUDE.md` specify it.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
