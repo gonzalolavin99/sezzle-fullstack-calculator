@@ -6,7 +6,11 @@ explain every part of it.
 
 ## Tools
 - **Claude (claude.ai):** planning, requirements analysis and the initial project plan, ADRs and this harness.
-- **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md`.
+- **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md` (phases 0 to F4).
+- **Claude Code (cloud session, claude.ai/code):** F5 to the end of phase 5 (entries 028 onward), in a Linux
+  container: tests, browser checks with Playwright, Docker builds and pushes, with the same `CLAUDE.md` rules.
+- **`code-reviewer` subagent** (`.claude/agents/code-reviewer.md`): an independent, read-only review before each
+  pull request (entries 022, 031, 037).
 - **v0 and Lovable:** one visual draft each from the same prompt, used only as a design reference (entry 008).
 
 ## How I worked
@@ -14,6 +18,8 @@ explain every part of it.
 2. Wrote `CLAUDE.md` so Claude Code had context about the project, my level in Go and the working rules
    (tests first, small commits, explain decisions, ask before big changes).
 3. Built task by task from `docs/PROJECT_PLAN.md`, reviewing each change before committing.
+4. Before each pull request, ran the `code-reviewer` subagent and fixed every "Must fix"; each finding was first
+   reproduced with a failing test or a command, and suggestions that turned out wrong were not applied.
 
 ## Log
 
@@ -587,6 +593,14 @@ explain every part of it.
   in the normal setup), start-up ordered by health, the CI pipeline and how versions are pinned, with the alternatives
   (distroless, direct backend port, a coverage service). Linked from the README's decisions table.
 - **Review:** each ADR claim checked against the code or a run from earlier entries; nothing else contradicted it.
+
+### 041 — R3: AI usage log reviewed (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** entries 001–040 checked for gaps (none); "Tools" now says which phases ran in the desktop app and which
+  in a cloud session, and names the `code-reviewer` subagent; "How I worked" gains the review step.
+- **Review:** the intro sentence "I reviewed, ran and tested all generated code" is Gonzalo's own statement and was not
+  changed; from F5 onward the code was run in the cloud container, so Claude Code asked him to pull and run it himself
+  (`make test`, `docker compose up --build`) before submitting, so the sentence stays true.
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
