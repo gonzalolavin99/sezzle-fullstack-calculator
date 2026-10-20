@@ -5,8 +5,10 @@ START_HERE.md
 backend/bin/
 *.exe
 *.test
-coverage.out
+*.out
 coverage.html
+go.work
+go.work.sum
 
 # Node / frontend
 node_modules/
@@ -14,6 +16,11 @@ frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+frontend/blob-report/
+frontend/playwright/.cache/
+*.local
+*.tsbuildinfo
+*.log
 
 # Environment files (configuration comes from env vars; never commit secrets)
 .env

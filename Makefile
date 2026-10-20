@@ -76,7 +76,7 @@ lint-frontend:
 fmt: fmt-backend fmt-frontend
 
 fmt-backend:
-	cd backend && go fmt ./...
+	cd backend && golangci-lint fmt
 
 fmt-frontend:
 	cd frontend && npm run format

@@ -80,6 +80,11 @@ explain every part of it.
 - **Review:** Ran `make help` through both `cmd.exe` and `sh`. First version printed "Nothing to be done for
   'help'"; fixed with `@exit 0`. `make test-backend` fails with "no packages to test" until B1 adds Go code —
   expected. The race detector is left to CI because it needs cgo, which a default Windows setup lacks.
+- **Code review (code-reviewer subagent, phase 0):** no Must fix. Applied: PATH note for `make tools` in the
+  README, plan notes that `-race` runs in CI and that the frontend `lint` script must include `prettier --check`
+  and `tsc --noEmit`, more complete `.gitignore` (Playwright, Vite, `*.out`, `go.work`), and `fmt-backend` now uses
+  `golangci-lint fmt` so `make fmt` and `make lint` share one formatter. Left for later: entry 001 review notes and
+  the Tools list placeholder (task R3).
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
