@@ -295,7 +295,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 5 — Documentation and submission (≈45 min)
 
-- [ ] **R1. README** with the structure in section 8.
+- [x] **R1. README** with the structure in section 8. ("Time spent" is filled in at R4.)
 - [ ] **R2. ADRs** reviewed and final.
 - [ ] **R3. `docs/ai/PROMPTS.md`** complete and honest.
 - [ ] **R4. Final review.** Fresh clone test, traceability table all ✅, no TODOs, no secrets, consistent naming, record time spent in the README.

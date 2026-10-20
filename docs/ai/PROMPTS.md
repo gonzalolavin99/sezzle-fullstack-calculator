@@ -565,6 +565,20 @@ explain every part of it.
   the clean-machine check D3 and R13 were waiting for, so both are now marked done; R9 too (lint runs in CI).
 - **Review:** checked the check runs on the PR head before changing the docs.
 
+### 039 — R1: README (Claude Code)
+- **Prompt (summary):** "ok" (merge PR #5), then continue with phase 5.
+- **Output:** PR #5 merged (normal merge) after updating its description with the green CI result; branch
+  `docs/readme` from `main`. README: CI badge, a real screenshot (taken with Playwright from the Docker stack),
+  highlights, API reference with `curl` examples and an error table whose responses were copied from real calls
+  to the running stack, architecture diagram and layers, "adding an operation" with the real file names, a design
+  decisions table linking the ADRs, assumptions (percentage, float64, inputs, power, left-to-right chaining), AI usage,
+  "what I would do with more time" (the known limitations from the reviews), and a test and coverage table.
+- **Review:** every relative link checked to exist. One wrong claim caught by calling the API before committing: the
+  draft said a missing operand gives `INVALID_OPERAND`, but a missing `operands` field gives `INVALID_REQUEST`; a `null`,
+  non-numeric or `1e400` operand gives `INVALID_OPERAND` (400). Also noticed while checking: `/healthz` is not proxied
+  by nginx (it is the Docker healthcheck), so the README says so instead of showing it on port 8080. "Time spent" is
+  left for Gonzalo to fill in: it is his real time and cannot be inferred.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
