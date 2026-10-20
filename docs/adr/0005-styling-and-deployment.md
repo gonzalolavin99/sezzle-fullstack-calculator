@@ -14,6 +14,10 @@ iterate on a small UI).
   `ALLOWED_ORIGINS` set to the Vercel domain.
 - The demo is a convenience for reviewers. The source of truth is the repository and `docker compose up`.
 
+## Outcome (2026-10-20)
+Deployed as planned: the frontend on Vercel (`VITE_API_BASE_URL`) and the backend's Docker image on Render's free tier
+(`ALLOWED_ORIGINS` set to the Vercel domain, health check on `/healthz`, `PORT` provided by Render). URLs in the README.
+
 ## Consequences
 - The deployed backend is the same artifact we test, which keeps the demo honest.
 - Free tiers may sleep when idle; the README warns that the first request can be slow.
