@@ -53,6 +53,9 @@ make lint-backend       # golangci-lint run + format check
 
 ## API reference
 
+The full contract is in [`backend/api/openapi.yaml`](backend/api/openapi.yaml) (OpenAPI 3.1). A test fails if a
+route or error code used by the code is missing from it.
+
 ## Architecture
 
 ## Design decisions and trade-offs

@@ -270,7 +270,7 @@ Estimated times are for Claude Code + Gonzalo together.
   *Learn:* `context`, goroutines and channels — just enough to understand graceful shutdown.
 - [x] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
   *Done when:* backend coverage ≥ 85%, `go test -race ./...` clean (runs in CI on Linux).
-- [ ] **B13. OpenAPI spec** in `backend/api/openapi.yaml` matching the real behavior.
+- [x] **B13. OpenAPI spec** in `backend/api/openapi.yaml` matching the real behavior.
 
 ### Phase 3 — Frontend (≈1.5 h)
 

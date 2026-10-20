@@ -252,6 +252,17 @@ explain every part of it.
   the 405. Docker Desktop had to be started first (the engine was not running). A `sed` edit to the Makefile failed
   on an escaping error and changed nothing; redone with direct edits.
 
+### 021 — B13: OpenAPI spec (Claude Code)
+- **Prompt (summary):** continued straight from B12 ("let's continue").
+- **Output:** test first (`openapi_test.go`: the spec must mention every route and every error code the adapter
+  can return, taken from `domainErrorMapping` plus the request, router and recovery codes), shown failing; then
+  `backend/api/openapi.yaml` (OpenAPI 3.1): three paths, request/response schemas, the error shape with the code
+  enum, 400/405/422/500 responses with examples copied from the live run, and notes on float behavior and
+  `X-Request-ID`. README links to it.
+- **Review:** tests and lint green. YAML syntax checked by parsing it with `gopkg.in/yaml.v3` inside a throwaway
+  `golang:1.27` container (nothing installed on my machine). Not added: code generators or a served Swagger UI
+  (new dependencies for three routes).
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
