@@ -456,6 +456,115 @@ explain every part of it.
   reports `UNEXPECTED_RESPONSE`; no retry button when the operations list fails; keys typed faster than the backend
   answers are dropped while a request is pending.
 
+### 032 — D1: backend Dockerfile (Claude Code)
+- **Prompt (summary):** "Sigue" after the phase 3 PR, then "just push" (permission to push without asking).
+  Phase 3 PR opened; Phase 4 started on `chore/docker-ci`, stacked on `feat/frontend` until that PR is merged.
+- **Output:** `backend/Dockerfile`: build stage `golang:1.27.3-alpine3.24` (`go.mod` copied first for layer
+  caching, `CGO_ENABLED=0`, `-trimpath -ldflags="-s -w"`), runtime `alpine:3.24.2` with a fixed unprivileged user
+  (uid 10001), `HEALTHCHECK` with busybox `wget` on `/healthz`, exec-form `ENTRYPOINT`. `backend/.dockerignore`.
+  Image tags were checked on Docker Hub, not taken from memory.
+- **Review:** image 23.1 MB; container `healthy`, runs as `uid=10001(app)`; `POST /api/v1/calculate` returns 2.5 and
+  the 422 `DIVISION_BY_ZERO`; `docker stop` takes 0.2 s and logs "shutting down" then "server stopped" with exit
+  code 0 (the binary is PID 1 and gets SIGTERM). Rejected: distroless (smaller, but no `wget`, so the healthcheck
+  would need a new `healthcheck` subcommand in the Go binary). Known: the healthcheck adds one `/healthz` log line
+  every 10 s. In this cloud container the Docker daemon had to be started by hand (the equivalent of starting
+  Docker Desktop).
+
+### 033 — D2: frontend Dockerfile and nginx (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** `frontend/Dockerfile` (`node:24.22.0-alpine3.24` runs `npm ci` and `npm run build`; `nginx:1.30.6-alpine`,
+  the current stable branch, serves `dist/`), `frontend/.dockerignore`, and `frontend/nginx.conf.template`: `/api/`
+  is proxied to `${BACKEND_URL}` (default `http://backend:8080`, the Compose service; the official image renders
+  templates from the environment at startup, so another deployment changes an env var, not the image), hashed
+  `/assets/` cached for a year, `index.html` with `no-cache`, gzip, `nosniff` and `Referrer-Policy`, and a fallback
+  to `index.html`. Healthcheck with busybox `wget`.
+- **Review:** built and run next to the backend image on a Docker network: container `healthy`; `/api/v1/operations`
+  answered through nginx with the backend's `X-Request-Id`; `√-4` returned the 422 `INVALID_OPERAND`; the JS asset
+  came back gzipped with the long cache header. Mistake caught by checking headers per path: nginx drops server-level
+  `add_header` lines in any location that has its own, so `/` and `/assets/` had lost the security headers; they now
+  repeat them, with a comment. In this cloud container `npm ci` needs the environment's proxy and CA, so the image was
+  built from a scratch copy of the context whose Dockerfile adds only two lines for the CA (the committed Dockerfile
+  has nothing environment-specific). nginx's master process runs as root (workers do not), as in the official image;
+  an unprivileged nginx image was not added for this take-home.
+
+### 034 — D3: Docker Compose (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** `docker-compose.yml` with `backend` (no published port, reachable only through nginx) and `frontend`
+  (`8080:80`, `depends_on` the backend with `condition: service_healthy`, because nginx resolves `backend` at
+  startup). README "Quick start".
+- **Review:** `docker compose up -d --wait` reached both containers `healthy` in 11 s; `2^10 = 1024` answered
+  through `localhost:8080/api`; the app served on `/`. In this cloud container the frontend image came from the
+  D2 build (a local override file in my scratch folder, not in the repo), because a build that reaches npm needs the
+  environment's proxy and Compose v5 asks for an extra `--allow` flag for a host-network build; the backend was
+  built by Compose itself. The plain `docker compose up --build` on a clean machine is checked by CI (D4).
+
+### 035 — D5: Playwright smoke test (Claude Code)
+- **Prompt (summary):** same session. Done before D4 on purpose, so the CI workflow could run it from its first
+  version instead of starting with an empty e2e job.
+- **Output:** `@playwright/test` 1.64.1 (latest on npm, pinned exactly so the downloaded browser matches; justified in
+  ADR 0001), `frontend/playwright.config.ts` (base URL `http://localhost:8080` or `E2E_BASE_URL`, Chromium only, an
+  optional `PLAYWRIGHT_CHROMIUM_PATH` for an already installed browser), `frontend/e2e/calculator.spec.ts` (12 ÷ 4 = 3
+  with the keypad; 5 ÷ 0 typed on the keyboard shows the alert and the history line), `npm run e2e`, `make e2e`,
+  README steps. Vitest now includes only `src/**/*.test.*`, and `tsc` type-checks the e2e files.
+- **Review:** 2 passed against the Compose stack (nginx + Go). The code already existed, so to show the test depends
+  on the real backend the `backend` service was stopped: both tests failed waiting for the keys loaded from the API;
+  green again after restarting. 146 unit tests unchanged, lint clean. Locally the container's preinstalled Chromium
+  (an older build) ran the newer runner without problems; CI installs the matching browser.
+
+### 036 — D4: GitHub Actions CI (Claude Code)
+- **Prompt (summary):** same session, last task of phase 4 (done after D5, see entry 035).
+- **Output:** `.github/workflows/ci.yml`, on pushes to `main` and on pull requests, with `contents: read` and
+  cancel-in-progress per branch. Job `backend`: Go from `go.mod`, golangci-lint installed with `make tools` (the
+  version pinned in the Makefile, one source of truth), `make lint-backend`, `go test -race` with atomic coverage,
+  summary and HTML report uploaded. Job `frontend`: Node 24, `npm ci`, `npm run lint`, `npm run coverage`, report
+  uploaded. Job `e2e` (after both): `docker compose up --build -d --wait` on a clean runner, the same command a
+  reviewer runs, then Playwright with its own Chromium; service logs and the Playwright report on failure;
+  `docker compose down` always. Action versions (`checkout`, `setup-go`, `setup-node`, `upload-artifact` v7) read
+  from the repositories' tags with `git ls-remote`, because the GitHub API was not available in this session.
+- **Review:** `actionlint` 1.7.12 (run in Docker, with shellcheck) reports nothing. The backend job's commands were run
+  locally first: lint 0 issues, race tests green, 96.4% coverage. A first local lint run failed because an older
+  golangci-lint (2.5.0) already on this container's `PATH` came first; in CI `$GITHUB_PATH` prepends, and with the
+  same order locally it passed. The frontend and e2e steps ran locally in D2, D3 and D5, but the frontend image was
+  never built from the committed Dockerfile in this environment (only from a copy with two CA lines). Not verified yet:
+  a real run on GitHub. The workflow only runs on pull requests and `main`, so the first run comes with the phase 4
+  pull request.
+
+### 037 — Phase 4 review and fixes (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** "Do what you think is best: merge if that is best, stack if that is best." PR #4 (phase 3)
+  merged with a normal merge after checking it was clean with no open threads, so the phase 4 PR targets `main`.
+- **Output:** the reviewer ran actionlint, rebuilt the backend image, probed the stack and repeated the e2e run 10
+  times without a flake. One Must fix and four Should fix, all applied:
+  - **M1.** `make lint` failed after any `make e2e`: Playwright's `test-results/` (and `playwright-report/` in CI)
+    were not ignored by Prettier and ESLint. Reproduced, then ignored in both. Entry 035's "lint clean" was only true
+    when lint ran before e2e.
+  - **S1.** nginx resolves `backend` once; after `up` recreated the backend it could keep a stale address and answer
+    502. `depends_on` now has `restart: true`.
+  - **S2.** The README e2e steps left the shell in `frontend/`, so `make e2e` failed; there is now `make e2e-install`
+    (`playwright install --with-deps chromium`).
+  - **S3.** R13 and D3 were marked done before any clean-machine run; both are back to pending until the first CI run,
+    and entry 036 no longer says the frontend image was built from the committed Dockerfile.
+  - **S4.** `.env`, `.env.*` and `*.local` are excluded from both Docker build contexts (Vite would bake `VITE_*`
+    values from a local file into the public bundle).
+  Nice to have, applied: `server_tokens off`, a note that `BACKEND_URL` must have no trailing slash or path,
+  `COPY go.mod go.sum*`, `--start-interval=1s` on both healthchecks, 15-minute job timeouts, only pull request runs
+  are cancelled by a newer push, and clearer `make help` text. Not applied: digest pinning, an unprivileged nginx
+  image, quieter `/healthz` logs, 404 for missing static files.
+- **Review:** frontend image rebuilt from the current files (its `tsc -b` now type-checks the e2e files too); stack up
+  from scratch with `--wait` in 3 s (was 11 s); lint green with `test-results/` present; e2e 2 passed; actionlint clean.
+  S1 checked the realistic way: with a different backend image, `docker compose up -d` recreated the backend and
+  restarted nginx, and `/api` answered 200 (recreating only the backend service does not touch dependents, so my
+  first check of it proved nothing). One suggestion was wrong and was not kept: setting nginx's
+  `client_max_body_size` to the backend's 64 KiB makes nginx reject first with its own HTML 413; nginx's 1 MB
+  default already sits above the backend limit, and a 100 KB body now gets the backend's JSON `INVALID_REQUEST`
+  (checked). A comment in the template says why.
+
+### 038 — First CI run (GitHub Actions)
+- **Prompt (summary):** "What do we do meanwhile? Explain it more simply."
+- **Output:** the first run on PR #5 passed all three jobs on clean GitHub runners: backend (lint, race tests,
+  coverage) in 2 min, frontend in 26 s, and Docker build plus the Playwright smoke test in 1 min 16 s. That run is
+  the clean-machine check D3 and R13 were waiting for, so both are now marked done; R9 too (lint runs in CI).
+- **Review:** checked the check runs on the PR head before changing the docs.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

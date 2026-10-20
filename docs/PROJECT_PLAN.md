@@ -85,7 +85,7 @@ Adding "modulo" later = one file + one table-driven test + one line in the regis
 │   ├── src/components/                # shared UI pieces
 │   ├── e2e/                           # Playwright smoke test
 │   ├── Dockerfile
-│   └── nginx.conf                     # serves the SPA, proxies /api to the backend
+│   └── nginx.conf.template            # serves the SPA, proxies /api to ${BACKEND_URL}
 ├── docs/
 │   ├── REQUIREMENTS.md
 │   ├── PROJECT_PLAN.md                # this file
@@ -286,12 +286,12 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 4 — Docker, CI and end-to-end (≈45 min)
 
-- [ ] **D1. Backend Dockerfile.** Multi-stage build, static binary, small non-root runtime image, healthcheck.
-- [ ] **D2. Frontend Dockerfile.** Multi-stage: build with Node, serve with nginx; nginx proxies `/api` to the backend so there is no CORS in production.
-- [ ] **D3. `docker-compose.yml`.** Both services, healthchecks, app on `http://localhost:8080`.
+- [x] **D1. Backend Dockerfile.** Multi-stage build, static binary, small non-root runtime image, healthcheck.
+- [x] **D2. Frontend Dockerfile.** Multi-stage: build with Node, serve with nginx; nginx proxies `/api` to the backend so there is no CORS in production.
+- [x] **D3. `docker-compose.yml`.** Both services, healthchecks, app on `http://localhost:8080`.
   *Done when:* fresh clone + `docker compose up --build` works on a clean machine.
-- [ ] **D4. GitHub Actions CI.** Lint, type-check, tests with coverage for both layers, Docker build. Upload coverage reports as artifacts.
-- [ ] **D5. Playwright smoke test** that runs against Compose: open the app, compute `12 / 4 = 3`, try `5 / 0` and see the error.
+- [x] **D4. GitHub Actions CI.** Lint, type-check, tests with coverage for both layers, Docker build. Upload coverage reports as artifacts.
+- [x] **D5. Playwright smoke test** that runs against Compose: open the app, compute `12 / 4 = 3`, try `5 / 0` and see the error.
 
 ### Phase 5 — Documentation and submission (≈45 min)
 

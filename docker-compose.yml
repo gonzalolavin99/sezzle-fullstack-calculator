@@ -1,0 +1,22 @@
+# Full stack on http://localhost:8080: `docker compose up --build`.
+# The browser only talks to nginx, which serves the app and forwards /api to the backend.
+
+services:
+  backend:
+    build: ./backend
+    environment:
+      LOG_LEVEL: info
+    # No published port: the backend is reachable only inside this network, through nginx.
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      # nginx resolves "backend" once, at startup: wait until the backend is healthy, and restart nginx when
+      # the backend container is recreated (for example after `up --build`), so it never keeps a stale address.
+      backend:
+        condition: service_healthy
+        restart: true
+    restart: unless-stopped

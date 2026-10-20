@@ -39,6 +39,10 @@ Frontend (versions checked on the npm registry on 2026-10-20; exact versions in 
 - `msw` 3.0 (tests only): intercepts `fetch` at the network level so the API client is tested against realistic
   responses (status codes, headers, broken JSON, delays) without starting the backend or hand-mocking `fetch`.
 
+- `@playwright/test` 1.64.1 (pinned exactly, so the browser that `npx playwright install` downloads matches the
+  runner): one end-to-end smoke test in a real browser against the Docker Compose stack, which unit tests with
+  MSW cannot cover (nginx proxy, real backend).
+
 The API client uses the built-in `fetch` (no `axios`): one dependency fewer, and timeouts come from
 `AbortSignal.timeout`.
 

@@ -23,6 +23,15 @@ only uses commands that work in both POSIX `sh` and Windows `cmd.exe`.
 
 ## Quick start
 
+```bash
+docker compose up --build      # or: make docker-up
+```
+
+Open `http://localhost:8080`. nginx serves the app and forwards `/api` to the Go service, which is not published
+on the host; the API is reachable through nginx, for example `curl -X POST http://localhost:8080/api/v1/calculate
+-d '{"operation":"divide","operands":[10,4]}'`. The frontend starts once the backend's healthcheck passes.
+Stop with `Ctrl+C`, or `docker compose down` (`make docker-down`) when started with `-d`.
+
 ## Running without Docker
 
 ### Backend
@@ -65,6 +74,12 @@ make lint-backend       # golangci-lint run + format check
 make test-frontend      # Vitest: API client, reducer, components and user flows (MSW fakes the backend)
 make coverage-frontend  # text summary, plus frontend/coverage/index.html
 make lint-frontend      # ESLint, Prettier check and strict tsc
+
+# End-to-end smoke test (Playwright) against the full stack
+docker compose up --build -d --wait
+make e2e-install        # once: Chromium and the system libraries it needs
+make e2e                # opens the app, computes 12 ÷ 4 = 3, checks the 5 ÷ 0 error
+docker compose down
 ```
 
 ## API reference

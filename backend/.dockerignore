@@ -1,0 +1,11 @@
+# Only the Go sources are needed to build the image.
+bin/
+coverage.out
+coverage.html
+*.test
+# Configuration comes from the container's environment, never from files in the image.
+.env
+.env.*
+*.local
+Dockerfile
+.dockerignore

@@ -12,7 +12,7 @@ GOLANGCI_LINT_VERSION := v2.15.0
 	coverage coverage-backend coverage-frontend \
 	lint lint-backend lint-frontend \
 	fmt fmt-backend fmt-frontend \
-	docker-up docker-down
+	docker-up docker-down e2e e2e-install
 
 define HELP
 Usage: make <target>
@@ -27,6 +27,8 @@ Usage: make <target>
   fmt         Format Go and frontend code
   docker-up   Build and start the full stack on http://localhost:8080
   docker-down Stop the full stack
+  e2e         Run the Playwright smoke test against a running stack (start it: docker compose up --build -d --wait)
+  e2e-install Install Playwright's Chromium and its system libraries (once)
 
 Each target also has -backend and -frontend variants, for example: make test-backend
 endef
@@ -91,3 +93,10 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+# Needs the stack running and a browser (make e2e-install, once).
+e2e:
+	cd frontend && npm run e2e
+
+e2e-install:
+	cd frontend && npx playwright install --with-deps chromium
