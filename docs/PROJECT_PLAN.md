@@ -298,7 +298,7 @@ Estimated times are for Claude Code + Gonzalo together.
 - [x] **R1. README** with the structure in section 8. ("Time spent" is filled in at R4.)
 - [x] **R2. ADRs** reviewed and final.
 - [x] **R3. `docs/ai/PROMPTS.md`** complete and honest.
-- [ ] **R4. Final review.** Fresh clone test, traceability table all ✅, no TODOs, no secrets, consistent naming, record time spent in the README.
+- [x] **R4. Final review.** Fresh clone test, traceability table all ✅, no TODOs, no secrets, consistent naming, record time spent in the README.
 - [ ] **R5. Live demo (optional).** Deploy per ADR 0005 and add the link to the README. Skip if it risks the deadline.
 - [ ] **R6. Submit** the repository link (and prompts) through the Greenhouse form and send a short note to the recruiter.
 

@@ -611,6 +611,18 @@ explain every part of it.
 - **Review:** nothing in the repository was wrong; the instructions I gave ("git checkout docs/readme; git pull") had the
   two commands in the wrong order for a branch that did not exist locally yet. My mistake.
 
+### 043 — R4: Gonzalo's own run on Windows (Claude Code)
+- **Prompt (summary):** Gonzalo's PowerShell output and a screenshot: on `docs/readme`, `npm.cmd install`, `make test`
+  (backend packages and 146 frontend tests green) and `docker compose up --build` on Windows with Docker Desktop
+  (WSL2): both images built, backend healthy, nginx started, the app worked in the browser (dark mode, history,
+  √36 = 6, a 15-digit sum shown in scientific notation). He asked whether thousands separators look right, whether
+  everything can run on Vercel alone, and why the README on GitHub looked unfinished.
+- **Output:** R4 marked done (fresh-machine run by the author, plus the CI clean-runner run). The README on GitHub looked
+  unfinished because the README work was still on the open PR #6, not on `main`; merging it fixes that. Thousands
+  separators kept: desk and phone calculators group digits the same way (the display groups only after a number is
+  entered, which the phase 3 review also noted).
+- **Review:** no code change needed; the hosting question is answered with the options from ADR 0005.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
