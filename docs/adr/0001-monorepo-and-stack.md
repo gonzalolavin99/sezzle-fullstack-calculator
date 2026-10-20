@@ -36,6 +36,11 @@ Frontend (versions checked on the npm registry on 2026-10-20; exact versions in 
 - `prettier` 3.9 + `eslint-config-prettier`: formatting, with ESLint's style rules turned off so the two never
   disagree.
 - `@types/react`, `@types/react-dom`, `@types/node`: type definitions.
+- `msw` 3.0 (tests only): intercepts `fetch` at the network level so the API client is tested against realistic
+  responses (status codes, headers, broken JSON, delays) without starting the backend or hand-mocking `fetch`.
+
+The API client uses the built-in `fetch` (no `axios`): one dependency fewer, and timeouts come from
+`AbortSignal.timeout`.
 
 ## Consequences
 - One clone, one command to run everything; easy to review.

@@ -276,7 +276,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 - [x] **F1. Scaffold.** Vite React TS, strict TypeScript, ESLint, Prettier, Vitest, RTL, Tailwind with design tokens from `docs/DESIGN.md`.
   The `lint` npm script must run `eslint`, `prettier --check` and `tsc --noEmit`, so `make lint` matches the docs.
-- [ ] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
+- [x] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
 - [ ] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
 - [ ] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).
 - [ ] **F5. Keyboard support and accessibility.**

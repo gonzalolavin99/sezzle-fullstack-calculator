@@ -36,7 +36,7 @@ The API listens on `http://localhost:8080`. Configuration comes from environment
 | Variable | Default | Meaning |
 |---|---|---|
 | `PORT` | `8080` | TCP port to listen on |
-| `ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins allowed by CORS (local frontend) |
+| `ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins allowed by CORS; only needed when the frontend runs on another origin (live demo, or Vite without its proxy) |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`; logs are JSON lines on stdout |
 
 Invalid values stop the server at startup with a clear message. `Ctrl+C` or `SIGTERM` shuts it down gracefully,

@@ -312,6 +312,22 @@ explain every part of it.
 - **Review:** frontend test and lint green. The paper-tape idea (a history list) is kept because it is useful;
   only the decoration was removed.
 
+### 025 — F2: typed API client (Claude Code)
+- **Prompt (summary):** continued with the plan after the visual change (task F2).
+- **Output:** test first (`client.test.ts`, 16 cases with MSW 3: success for both endpoints, every server error
+  code with status, detail and request ID, an unknown code, a non-JSON proxy error page, a malformed success body,
+  network failure, timeout, and the `onExchange` report), shown failing; then `src/api/`: `types.ts` (from the
+  OpenAPI spec), `errors.ts` (`ApiError` with a friendly `message` and the server's `detail`), `messages.ts`
+  (a `Record` over every code, so a new code without a message fails to compile) and `client.ts` (`fetch` +
+  `AbortSignal.timeout`, runtime shape checks before trusting network data). Development uses a Vite proxy for
+  `/api`, so the app always calls same-origin paths, as with nginx in Docker; CORS docs updated to say it is only
+  for a different-origin deployment. `VITE_API_BASE_URL` is typed for the optional demo.
+- **Review:** 17 tests green, frontend coverage 95.9%, lint and strict `tsc` green; proxy checked live (request to
+  :5173 answered by the Go backend with its request ID). Two mistakes caught: the timeout was first detected with
+  `err instanceof DOMException`, which is false across realms (jsdom vs Node), so it now asks `signal.aborted`;
+  and the test used MSW v2's `onUnhandledRequest`, which v3 renamed to `onUnhandledFrame` (found by `tsc`, since
+  Vitest does not type-check).
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
