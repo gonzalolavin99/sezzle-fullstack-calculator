@@ -487,6 +487,17 @@ explain every part of it.
   has nothing environment-specific). nginx's master process runs as root (workers do not), as in the official image;
   an unprivileged nginx image was not added for this take-home.
 
+### 034 — D3: Docker Compose (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** `docker-compose.yml` with `backend` (no published port, reachable only through nginx) and `frontend`
+  (`8080:80`, `depends_on` the backend with `condition: service_healthy`, because nginx resolves `backend` at
+  startup). README "Quick start".
+- **Review:** `docker compose up -d --wait` reached both containers `healthy` in 11 s; `2^10 = 1024` answered
+  through `localhost:8080/api`; the app served on `/`. In this cloud container the frontend image came from the
+  D2 build (a local override file in my scratch folder, not in the repo), because a build that reaches npm needs the
+  environment's proxy and Compose v5 asks for an extra `--allow` flag for a host-network build; the backend was
+  built by Compose itself. The plain `docker compose up --build` on a clean machine is checked by CI (D4).
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
