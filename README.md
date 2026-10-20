@@ -203,7 +203,7 @@ dependencies pointing inward.
 | All math in the backend | The brief asks for an API-driven calculator; one source of truth | Computing in the browser: faster, but the API would be decorative |
 | Pure reducer + hook in the frontend | Every key press is a tested state transition, no React needed to test it | State spread across components |
 | Tailwind with design tokens ([ADR 0005](docs/adr/0005-styling-and-deployment.md)) | Light/dark mode by swapping CSS variables; styles next to components | CSS modules |
-| nginx proxies `/api` | Same origin in production (and Vite's proxy in development), so no CORS | Calling the backend's port directly from the browser |
+| nginx proxies `/api` ([ADR 0006](docs/adr/0006-containers-and-ci.md)) | Same origin in production (and Vite's proxy in development), so no CORS | Calling the backend's port directly from the browser |
 
 ## Assumptions
 

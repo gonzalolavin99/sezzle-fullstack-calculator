@@ -579,6 +579,15 @@ explain every part of it.
   by nginx (it is the Docker healthcheck), so the README says so instead of showing it on port 8080. "Time spent" is
   left for Gonzalo to fill in: it is his real time and cannot be inferred.
 
+### 040 — R2: ADRs reviewed (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** all five ADRs re-read against the code. Two statements made precise: ADR 0002 (a new operation also needs
+  one line in `DefaultOperations()`) and ADR 0004 (display rounding is 15 significant digits, after the F6 fix). New
+  ADR 0006 records the phase 4 decisions that had none: two images and Compose, same-origin proxy through nginx (no CORS
+  in the normal setup), start-up ordered by health, the CI pipeline and how versions are pinned, with the alternatives
+  (distroless, direct backend port, a coverage service). Linked from the README's decisions table.
+- **Review:** each ADR claim checked against the code or a run from earlier entries; nothing else contradicted it.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
