@@ -299,6 +299,19 @@ explain every part of it.
   `npm.cmd` (the execution policy was not changed); the copied `tsconfig.json` failed the Prettier check until
   formatted. Kept ESLint although the new Vite template ships `oxlint`, because the plan and `CLAUDE.md` specify it.
 
+### 024 — Visual direction: make the UI look less AI-generated (Claude Code)
+- **Prompt (summary):** "The visual part looks very AI-made; make it more natural, then continue with the plan."
+- **Output:** Claude Code listed the traits that read as generated, most of them inherited from the v0 draft and
+  copied into the F1 header: tiny uppercase letter-spaced eyebrow labels ("DESK INSTRUMENT / 01", "RUNNING
+  RECORD", "CALCULATOR · READY", "END OF TAPE"), monospace for every label, hairline near-square panels with soft
+  shadows, low-contrast beige text, strikethrough error lines. `docs/DESIGN.md` gained a "Visual direction" section
+  (plain sentence-case words, monospace only for numbers, keys that look like keys, AA contrast, plain "History"
+  and "Request details"). A contrast script showed two light tokens failing WCAG AA (`muted` 3.20, `danger` 4.37);
+  both were darkened (now 4.77 and 5.42). The heading became "Calculator" (test first: the old heading failed the
+  updated test). A quick mockup of the new direction was shown in chat; the real components come in F4.
+- **Review:** frontend test and lint green. The paper-tape idea (a history list) is kept because it is useful;
+  only the decoration was removed.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
