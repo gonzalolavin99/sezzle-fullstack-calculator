@@ -280,7 +280,7 @@ Estimated times are for Claude Code + Gonzalo together.
 - [x] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
 - [x] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).
 - [x] **F5. Keyboard support and accessibility.** Digits, `. ,`, `+ - * /`, `Enter`/`=`, `Backspace`, `Escape`; results announced once through a `role="status"` region, errors through the banner's `role="alert"`.
-- [ ] **F6. Responsive layout and dark mode.** Check at 360px and at desktop width.
+- [x] **F6. Responsive layout and dark mode.** Check at 360px and at desktop width.
 - [ ] **F7. Component tests** for main flows: `2 + 3 = 5`, divide by zero shows the error, sqrt of a negative shows the error, backend down shows a friendly message.
   *Done when:* frontend logic coverage ≥ 85%.
 

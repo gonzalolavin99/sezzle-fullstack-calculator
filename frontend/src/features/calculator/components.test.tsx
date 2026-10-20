@@ -27,6 +27,20 @@ describe('Display', () => {
     expect(screen.getByTestId('display-expression')).toHaveTextContent('12 ÷')
   })
 
+  // Digits are never cut off: long numbers get a smaller font so they fit a 360px screen.
+  it.each([
+    ['123456789', 'text-5xl'],
+    ['1234567890123', 'text-4xl'],
+    ['-123456789012345.', 'text-2xl'],
+    // The longest formatted result: 15 significant digits after "0.00000".
+    ['-0.00000142857142857143', 'text-xl'],
+  ])('sizes %s to fit (%s)', (input, size) => {
+    render(<Display state={{ ...initialState, input }} />)
+    const value = screen.getByTestId('display-value')
+    expect(value).toHaveClass(size)
+    expect(value).not.toHaveClass('truncate')
+  })
+
   it('shows the calculation in progress', () => {
     const state: State = {
       ...initialState,

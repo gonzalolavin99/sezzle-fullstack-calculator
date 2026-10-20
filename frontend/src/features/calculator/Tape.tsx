@@ -12,7 +12,7 @@ interface TapeProps {
 /** The "History" panel: every calculation, newest first. A result can be reused. */
 export function Tape({ entries, onUse, onClear }: TapeProps) {
   return (
-    <section aria-labelledby="history-heading" className="rounded-xl bg-tape p-4 sm:p-5">
+    <section aria-labelledby="history-heading" className="min-w-0 rounded-xl bg-tape p-4 sm:p-5">
       <div className="mb-2 flex items-center justify-between">
         <h2 id="history-heading" className="text-lg font-semibold">
           History
@@ -34,7 +34,10 @@ export function Tape({ entries, onUse, onClear }: TapeProps) {
       ) : (
         <ol className="divide-y divide-rule">
           {entries.map((entry) => (
-            <li key={entry.id} className="flex items-baseline justify-between gap-3 py-2">
+            <li
+              key={entry.id}
+              className="flex items-baseline justify-between gap-3 py-2 motion-safe:animate-slide-in"
+            >
               <Line entry={entry} onUse={onUse} />
               <time dateTime={entry.at} className="shrink-0 text-xs text-muted">
                 {timeFormat.format(new Date(entry.at))}
@@ -53,7 +56,7 @@ function Line({ entry, onUse }: { entry: HistoryEntry; onUse: (value: number) =>
 
   if (result === undefined) {
     return (
-      <p className="min-w-0">
+      <p className="min-w-0 wrap-anywhere">
         <span className="font-mono tabular-nums">{expression}</span>{' '}
         <span className="text-sm text-danger">· {entry.error}</span>
       </p>
@@ -66,7 +69,7 @@ function Line({ entry, onUse }: { entry: HistoryEntry; onUse: (value: number) =>
       type="button"
       aria-label={`Use result ${shown}`}
       onClick={() => onUse(result)}
-      className="-mx-1 min-w-0 truncate rounded px-1 text-left font-mono tabular-nums hover:bg-tape-hover focus-visible:outline-2 focus-visible:outline-accent"
+      className="-mx-1 min-w-0 rounded px-1 text-left font-mono wrap-anywhere tabular-nums hover:bg-tape-hover focus-visible:outline-2 focus-visible:outline-accent"
     >
       {expression} = {shown}
     </button>

@@ -382,6 +382,28 @@ explain every part of it.
   plus key cannot be written cleanly); advanced operations have no shortcuts (their list comes from the API).
   This session ran in a Linux cloud container, not on Windows, and pushed to the branch the environment assigns.
 
+### 029 — F6: responsive layout and dark mode (Claude Code)
+- **Prompt (summary):** same session; continued with the plan after F5.
+- **Output:** Chromium screenshots (Playwright) at 360px and 1280px, light and dark, before changing anything.
+  Dark mode was already right. Found and fixed, with a component test first where jsdom can see it:
+  1. At 360px a long result widened the page by 119px: grid items default to `min-width: auto`, so `truncate`
+     never applied. The grid children now have `min-w-0`.
+  2. The display cut long results (`1.219326…`); a calculator must not hide digits. The value now steps down
+     from `text-5xl` to `text-4xl`, `text-2xl` and `text-xl` by length (tests for each step); history lines wrap
+     (`wrap-anywhere`) instead of truncating.
+  3. A real bug from F3, seen in a screenshot: `-123456789012345` (15 digits, the keypad maximum) appeared in
+     the history as `-123,456,789,012,000`, because display formatting kept 12 significant digits. Now 15, the
+     same as `MAX_DIGITS` and within float64's exact range; `0.30000000000000004` still shows as `0.3` (tests
+     first, shown failing). Committed separately as a `fix`.
+  4. The one animation from `docs/DESIGN.md`: a new history line slides in, only under `motion-safe`.
+- **Review:** 131 tests green, lint, Prettier and strict `tsc` clean. Measured in Chromium at 360px: no
+  horizontal scroll, and the longest values (`-999,999,999,999,999`, `0.00000142857142857143`) fit. My first size
+  limits assumed 17 characters at most; after moving to 15 digits the measurement showed three values that no
+  longer fit, so a `text-xl` step was added and measured again. With `reducedMotion: 'reduce'` the computed
+  animation is `none`. A Playwright helper of mine waited for `e+268` where the real result was `e+267`; it was a
+  script mistake, not an app bug. Kept: the stacked mobile order (calculator, request details, history) as in
+  `docs/DESIGN.md`; no manual theme switch (the design asks for `prefers-color-scheme` only).
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

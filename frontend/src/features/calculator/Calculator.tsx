@@ -28,7 +28,7 @@ export function Calculator({ baseUrl = apiBaseUrl }: CalculatorProps) {
 
   return (
     <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-      <div className="space-y-3">
+      <div className="min-w-0 space-y-3">
         <section
           aria-label="Calculator"
           aria-busy={busy}
