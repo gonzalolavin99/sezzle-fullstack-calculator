@@ -105,6 +105,7 @@ describe('AdvancedOperations', () => {
         status="ready"
         operations={operations}
         onSelect={vi.fn()}
+        onRetry={vi.fn()}
         disabled={false}
       />,
     )
@@ -119,6 +120,7 @@ describe('AdvancedOperations', () => {
         status="ready"
         operations={[...operations, { name: 'clamp', arity: 3 }, { name: 'random', arity: 0 }]}
         onSelect={vi.fn()}
+        onRetry={vi.fn()}
         disabled={false}
       />,
     )
@@ -133,6 +135,7 @@ describe('AdvancedOperations', () => {
         status="ready"
         operations={operations}
         onSelect={onSelect}
+        onRetry={vi.fn()}
         disabled={false}
       />,
     )
@@ -141,11 +144,33 @@ describe('AdvancedOperations', () => {
     expect(onSelect).toHaveBeenCalledWith({ name: 'sqrt', arity: 1 })
   })
 
-  it('says so when the list could not be loaded', () => {
+  it('says the server is waking up while it retries', () => {
     render(
-      <AdvancedOperations status="error" operations={[]} onSelect={vi.fn()} disabled={false} />,
+      <AdvancedOperations
+        status="retrying"
+        operations={[]}
+        onSelect={vi.fn()}
+        onRetry={vi.fn()}
+        disabled={false}
+      />,
+    )
+    expect(screen.getByText(/waking up the server/i)).toBeInTheDocument()
+  })
+
+  it('says so when the list could not be loaded, and offers a retry', async () => {
+    const onRetry = vi.fn()
+    render(
+      <AdvancedOperations
+        status="error"
+        operations={[]}
+        onSelect={vi.fn()}
+        onRetry={onRetry}
+        disabled={false}
+      />,
     )
     expect(screen.getByText(/couldn't load more operations/i)).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }))
+    expect(onRetry).toHaveBeenCalledOnce()
   })
 })
 

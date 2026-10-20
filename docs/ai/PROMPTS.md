@@ -638,6 +638,22 @@ explain every part of it.
   the CORS preflight returns 204 with `Access-Control-Allow-Origin` set to the Vercel origin; a cross-origin POST
   returns 200 with that header and `"result":3`; in the browser `12 ÷ 4 = 3` and `5 ÷ 0` shows the 422 message.
 
+### 045 — Retry loading the operations list (Claude Code)
+- **Prompt (summary):** Gonzalo opened the live demo and saw "Couldn't load more operations": `GET /api/v1/operations`
+  with no response after 5015 ms.
+- **Output:** cause: Render's free tier puts the API to sleep and waking it takes about 50 s, longer than the client's
+  5 s timeout, and the operations list was requested only once, so a reviewer's first visit would show no advanced
+  keys. Tests first (2 component, 3 flow tests: retries until the server answers, shows that it is retrying, offers
+  a manual retry after the automatic ones), shown failing; then `useOperations` retries up to 20 times, 3 s apart
+  (status `retrying`, "Waking up the server…"), and after that shows a Retry button. The retry settings are an
+  optional `Calculator` prop so tests run without real delays; the effect depends on the two numbers, not the options
+  object, so an inline object cannot restart it on every render (the phase 3 request-storm lesson).
+- **Review:** 150 tests green, lint and strict `tsc` clean. Simulated a cold start in Chromium: page opened with the
+  backend down, backend started 15 s later; the page showed "Loading operations…", then "Waking up the server…" at
+  6.5 s, the advanced keys at 16 s, and `12 / 4 = 3` right after. A first draft of the manual-retry test depended on a
+  race between two messages a few milliseconds apart; rewritten to wait for the Retry button. README updated (the retry
+  item left "what I would do with more time").
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
