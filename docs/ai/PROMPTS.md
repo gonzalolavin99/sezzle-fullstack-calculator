@@ -7,7 +7,7 @@ explain every part of it.
 ## Tools
 - **Claude (claude.ai):** planning, requirements analysis and the initial project plan, ADRs and this harness.
 - **Claude Code (desktop):** implementation, tests, documentation, guided by `CLAUDE.md`.
-- *(Add v0 or Lovable here if used for a visual draft.)*
+- **v0 and Lovable:** one visual draft each from the same prompt, used only as a design reference (entry 008).
 
 ## How I worked
 1. Turned the assignment email into `docs/REQUIREMENTS.md` with a traceability table.
@@ -85,6 +85,90 @@ explain every part of it.
   and `tsc --noEmit`, more complete `.gitignore` (Playwright, Vite, `*.out`, `go.work`), and `fmt-backend` now uses
   `golangci-lint fmt` so `make fmt` and `make lint` share one formatter. Left for later: entry 001 review notes and
   the Tools list placeholder (task R3).
+
+### 007 — B1: domain errors (Claude Code)
+- **Prompt (summary):** "Merge PR 1 (normal merge, not squash) and continue with B1."
+- **Output:** PR 1 merged with a merge commit; branch `feat/backend-domain`. Test first:
+  `internal/calculator/errors_test.go` (every error is distinct; `errors.Is` still finds each one after `%w`
+  wrapping), shown failing to compile, then `internal/calculator/errors.go` with six sentinel errors.
+  `INVALID_OPERAND` has two statuses in the plan (400 for NaN/Inf input, 422 for undefined math), so the domain
+  has two errors, `ErrNonFiniteOperand` and `ErrInvalidOperand`; the API contract does not change.
+- **Review:** `go test`, `go vet` and `golangci-lint` (run and fmt) all clean. Rejected alternative: a struct
+  error type carrying API codes, because it would leak HTTP concerns into the domain.
+
+### 008 — UI visual draft (Claude Code → v0 and Lovable)
+- **Prompt (summary):** I asked whether to try v0 or Lovable for the frontend. Claude Code recommended a visual
+  draft only (as the plan says) and wrote one prompt for v0, based on `docs/DESIGN.md`: a single React + Tailwind
+  component, no component libraries, mock data, "paper tape" concept, desktop and 360px layouts, keypad, advanced
+  row, error banner, tape with a voided error line, collapsible API inspector, light/dark tokens, aria-labels,
+  one animation with reduced-motion support. I ran the same prompt in v0 and in Lovable.
+- **Output:** two deployed drafts. Claude Code compared them in a browser at desktop and 375px widths and chose
+  v0 (closer to the design doc, more polished, code downloadable). I downloaded the v0 code; `page.tsx` and
+  `globals.css` are kept as reference in `docs/design/v0-draft/`. `docs/DESIGN.md` now lists what was adopted,
+  changed and rejected, plus the color tokens.
+- **Review:** Both drafts showed `%` twice; this came from Claude Code's prompt (it listed `%` in both the advanced
+  row and the keypad) and is fixed in the design notes. Rejected from the draft: math in the browser, one large
+  component, Next.js/shadcn/analytics dependencies. Claude Code could not read the v0 source through the Vercel
+  connection (403 on my team scope), so I downloaded it manually.
+
+### 009 — B2: Operation interface and registry (Claude Code)
+- **Prompt (summary):** "The v0 ZIP is downloaded; continue with that or with B2."
+- **Output:** test first (`registry_test.go` with a stub operation: duplicate names rejected, lookup by name
+  including unknown/empty/case-sensitive names wrapped as `ErrUnknownOperation`, operations listed sorted by name),
+  shown failing, then `operation.go` (interface from the plan) and `registry.go` (`NewRegistry` returns an error on
+  duplicates; `Lookup`; `Operations` sorted with `slices.Sorted(maps.Keys(...))`).
+- **Review:** 100% coverage of the package, `go vet` and `golangci-lint` clean. The first run of the format check
+  failed on a misaligned one-line method in the test; fixed with `make fmt-backend`. Rejected alternative: a
+  `switch` on the operation name in the handler, which would mix domain and HTTP and grow with every operation.
+  Also noticed that the commit for entry 008 picked up a Codex copy of the harness (`AGENTS.md`, `.agents/`,
+  `.codex/`) that was not created by Claude Code. I asked to remove it from the repo; it is now untracked and
+  ignored, and the local copy stays on my machine.
+
+### 010 — B3: basic operations (Claude Code)
+- **Prompt (summary):** "Remove AGENTS.md, .agents/ and .codex/ from the repo and continue with B3."
+- **Output:** Codex files untracked with `git rm --cached` and added to `.gitignore` (local copies kept; they
+  remain in the history of one earlier commit). Test first: `basic_test.go`, one table with 30 cases for add,
+  subtract, multiply and divide (integers, zero, negatives, decimals including `0.1 + 0.2`, large but finite
+  numbers, divide by `0` and `-0`, NaN/Inf operands, wrong operand count), shown failing; then `basic.go`
+  (four empty-struct operations) and `operands.go` (`checkOperands`: arity and finite checks shared by all
+  operations, so `Apply` never panics on a short slice).
+- **Review:** package coverage 100% (target ≥ 95%), `golangci-lint` clean. Overflow to `Inf` (for example
+  `1e308 * 10`) is deliberately left to B5, the shared result guard; B3 tests only use large values that stay finite.
+
+### 011 — B4: advanced operations (Claude Code)
+- **Prompt (summary):** "Open the terminal and show me live how to run these commands (`make test-backend` and
+  so on), then continue with B4."
+- **Output:** Claude Code ran the commands in my terminal panel and explained `-v`, `-run`, `-cover` and test
+  caching. Before writing tests it ran a scratch program to check `math.Pow` on edge cases instead of guessing:
+  `(-8)^(1/3)` is `NaN`, `0^-1` is `+Inf`, `0^0` is `1`. Test first (`advanced_test.go`, 24 cases), shown failing
+  in my terminal, then `advanced.go`: `Power` (negative base with fractional exponent → `ErrInvalidOperand`,
+  zero to a negative exponent → `ErrDivisionByZero`), `Sqrt` (negative → `ErrInvalidOperand`) and `Percentage`
+  (`a / 100 * b`, so `50% of 1e308` does not overflow in the intermediate `a * b`).
+- **Review:** 100% coverage, lint clean, run in my own terminal. Overflow such as `10^400` is left to B5. Noted for
+  B5: `math.Sqrt(-0)` returns `-0`, which JSON would print as `-0`; the result guard should normalize it.
+
+### 012 — B5: result guard (Claude Code)
+- **Prompt (summary):** "Go ahead" (task B5).
+- **Output:** test first (`result_guard_test.go`): every operation that can overflow returns
+  `ErrResultOutOfRange`; no operation returns `-0` (checked with `math.Signbit`, because `-0 == 0`); direct table
+  test of the guard, including `NaN` → `ErrInvalidOperand`. Implemented in two steps so the red was meaningful:
+  first `checkResult` alone (11 subtests failed at runtime, showing `+Inf, <nil>` and `-0` results), then every
+  `Apply` returns through `checkResult`. ADR 0004 now mentions the `-0` rule.
+- **Review:** 100% coverage, lint clean, all run in my terminal. Chose a call in each `Apply` over a wrapper in
+  the registry, so the rule is visible where each result is computed and holds without the use case.
+
+### 013 — Phase 1 review and pull request (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** "Run the code-reviewer, fix the Must fix items and open the Phase 1 PR."
+- **Output:** the reviewer found one Must fix, a real bug introduced in B4: `percentage` computed `a / 100 * b`,
+  so 7% of 100 returned `7.000000000000001` (190 inexact integer results for a in 1..100, b in 1..1000, against
+  0 with `a * b / 100`). Claude Code had chosen `a / 100 * b` to avoid overflow after checking only three inputs
+  (15% of 200, 12.5% of 80, 7% of 3) that happened to match; a first re-check also looked fine because Go folds
+  constant expressions exactly at compile time, so it re-ran the check with runtime values. Fixed test first
+  (7% of 100 and 7% of 200 failing, then passing): multiply first, and divide first only if `a * b` overflows.
+  Should fix items applied: plan table (`0^negative`, percentage rule), ADR 0004 (NaN maps to `INVALID_OPERAND`),
+  test and interface comments, R1/R2 marked "domain done, UI pending", two more power edge tests.
+- **Review:** tests, coverage (100%) and lint green in my terminal. Lesson: probe floating-point choices over a
+  range of inputs, not a few hand-picked ones.
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)

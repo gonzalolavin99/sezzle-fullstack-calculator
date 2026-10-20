@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+  --paper: #eeece7;
+  --panel: #f7f5f0;
+  --tape: #faf8f2;
+  --tape-hover: #f1eee6;
+  --button: #f4f1eb;
+  --operator: #e8e4dc;
+  --ink: #262522;
+  --muted: #87837a;
+  --rule: #d8d3c9;
+  --accent: #d9a441;
+  --accent-ink: #2e2516;
+  --danger: #b24b42;
+  --danger-soft: #f4e7e3;
+  --code: #e9e5dd;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #1b1b19;
+    --panel: #242421;
+    --tape: #292824;
+    --tape-hover: #33312b;
+    --button: #2b2a26;
+    --operator: #36342e;
+    --ink: #efede6;
+    --muted: #99958b;
+    --rule: #46443d;
+    --accent: #d9a441;
+    --accent-ink: #2e2516;
+    --danger: #e47d72;
+    --danger-soft: #3d2926;
+    --code: #1e1e1b;
+  }
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+button { cursor: pointer; }
+
+@keyframes tape-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}

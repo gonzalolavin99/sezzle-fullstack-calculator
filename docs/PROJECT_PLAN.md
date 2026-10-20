@@ -139,9 +139,9 @@ one handler, one validation path, and the registry decides what exists. Trade-of
 | `subtract` | 2 | a − b | non-finite result |
 | `multiply` | 2 | a × b | non-finite result (overflow) |
 | `divide` | 2 | a ÷ b | `b == 0` → `DIVISION_BY_ZERO` |
-| `power` | 2 | aᵇ | negative base with fractional exponent → `INVALID_OPERAND`; overflow → `RESULT_OUT_OF_RANGE` |
+| `power` | 2 | aᵇ | negative base with fractional exponent → `INVALID_OPERAND`; zero to a negative exponent → `DIVISION_BY_ZERO`; overflow → `RESULT_OUT_OF_RANGE` |
 | `sqrt` | 1 | √a | `a < 0` → `INVALID_OPERAND` |
-| `percentage` | 2 | a % of b = a × b ÷ 100 | non-finite result |
+| `percentage` | 2 | a % of b = a × b ÷ 100 | non-finite result (multiplies first for exact results; divides first only if `a × b` overflows) |
 
 ### Error codes and HTTP status
 
@@ -246,15 +246,15 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 1 — Backend domain (≈1 h)
 
-- [ ] **B1. Domain errors.** Sentinel errors (`ErrDivisionByZero`, `ErrInvalidOperand`, `ErrResultOutOfRange`, ...) in `internal/calculator/errors.go`.
+- [x] **B1. Domain errors.** Sentinel errors (`ErrDivisionByZero`, `ErrInvalidOperand`, `ErrResultOutOfRange`, ...) in `internal/calculator/errors.go`.
   *Learn:* Go errors are values; `errors.Is` and `fmt.Errorf("%w")` vs `try/catch` in TypeScript.
-- [ ] **B2. Operation interface and registry.** Interface from section 2, registry with lookup by name and a sorted list.
+- [x] **B2. Operation interface and registry.** Interface from section 2, registry with lookup by name and a sorted list.
   *Learn:* Go interfaces are satisfied implicitly — no `implements` keyword.
-- [ ] **B3. Basic operations, test first.** add, subtract, multiply, divide with table-driven tests, including zero, negatives, decimals, very large numbers and `NaN`/`Inf` inputs.
+- [x] **B3. Basic operations, test first.** add, subtract, multiply, divide with table-driven tests, including zero, negatives, decimals, very large numbers and `NaN`/`Inf` inputs.
   *Done when:* `go test ./internal/calculator/...` passes, coverage ≥ 95%.
   *Learn:* table-driven tests and `t.Run` subtests.
-- [ ] **B4. Advanced operations, test first.** power, sqrt, percentage with the edge cases in section 3.
-- [ ] **B5. Result guard.** One shared check that rejects non-finite results, so no operation can return `NaN` or `Inf`.
+- [x] **B4. Advanced operations, test first.** power, sqrt, percentage with the edge cases in section 3.
+- [x] **B5. Result guard.** One shared check that rejects non-finite results, so no operation can return `NaN` or `Inf`.
 
 ### Phase 2 — Backend application and HTTP (≈1 h)
 
