@@ -240,6 +240,10 @@ request, and its findings and fixes are in the log too. The visual draft came fr
 
 ## Time spent
 
+About 4 hours of my own hands-on time, over two sessions on 19 and 20 October 2026, within the 2–4 hours the brief
+suggests. Claude Code did much of the typing (see [AI usage](#ai-usage)); my time went into planning, reviewing,
+running and questioning each step, and learning Go along the way.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).

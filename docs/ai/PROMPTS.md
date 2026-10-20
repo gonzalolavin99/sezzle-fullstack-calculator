@@ -602,6 +602,15 @@ explain every part of it.
   changed; from F5 onward the code was run in the cloud container, so Claude Code asked him to pull and run it himself
   (`make test`, `docker compose up --build`) before submitting, so the sentence stays true.
 
+### 042 — Time spent, and a local checkout mix-up (Claude Code)
+- **Prompt (summary):** "About 4 hours", plus Gonzalo's PowerShell output: `git checkout docs/readme` failed, `make test`
+  passed (146 frontend tests, all backend packages), `docker compose up --build` said "no configuration file provided".
+- **Output:** "Time spent" filled in with his number. Diagnosis of the error: the checkout ran before `git pull` had
+  fetched the new branch, so it failed and the pull fast-forwarded `feat/frontend` instead, which has no
+  `docker-compose.yml` (it arrived with phase 4). Fix: fetch first, then check out the branch.
+- **Review:** nothing in the repository was wrong; the instructions I gave ("git checkout docs/readme; git pull") had the
+  two commands in the wrong order for a branch that did not exist locally yet. My mistake.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
