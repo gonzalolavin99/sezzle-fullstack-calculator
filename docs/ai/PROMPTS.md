@@ -135,6 +135,18 @@ explain every part of it.
 - **Review:** package coverage 100% (target ≥ 95%), `golangci-lint` clean. Overflow to `Inf` (for example
   `1e308 * 10`) is deliberately left to B5, the shared result guard; B3 tests only use large values that stay finite.
 
+### 011 — B4: advanced operations (Claude Code)
+- **Prompt (summary):** "Open the terminal and show me live how to run these commands (`make test-backend` and
+  so on), then continue with B4."
+- **Output:** Claude Code ran the commands in my terminal panel and explained `-v`, `-run`, `-cover` and test
+  caching. Before writing tests it ran a scratch program to check `math.Pow` on edge cases instead of guessing:
+  `(-8)^(1/3)` is `NaN`, `0^-1` is `+Inf`, `0^0` is `1`. Test first (`advanced_test.go`, 24 cases), shown failing
+  in my terminal, then `advanced.go`: `Power` (negative base with fractional exponent → `ErrInvalidOperand`,
+  zero to a negative exponent → `ErrDivisionByZero`), `Sqrt` (negative → `ErrInvalidOperand`) and `Percentage`
+  (`a / 100 * b`, so `50% of 1e308` does not overflow in the intermediate `a * b`).
+- **Review:** 100% coverage, lint clean, run in my own terminal. Overflow such as `10^400` is left to B5. Noted for
+  B5: `math.Sqrt(-0)` returns `-0`, which JSON would print as `-0`; the result guard should normalize it.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

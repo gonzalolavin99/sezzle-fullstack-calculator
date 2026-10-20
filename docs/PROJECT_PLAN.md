@@ -253,7 +253,7 @@ Estimated times are for Claude Code + Gonzalo together.
 - [x] **B3. Basic operations, test first.** add, subtract, multiply, divide with table-driven tests, including zero, negatives, decimals, very large numbers and `NaN`/`Inf` inputs.
   *Done when:* `go test ./internal/calculator/...` passes, coverage ≥ 95%.
   *Learn:* table-driven tests and `t.Run` subtests.
-- [ ] **B4. Advanced operations, test first.** power, sqrt, percentage with the edge cases in section 3.
+- [x] **B4. Advanced operations, test first.** power, sqrt, percentage with the edge cases in section 3.
 - [ ] **B5. Result guard.** One shared check that rejects non-finite results, so no operation can return `NaN` or `Inf`.
 
 ### Phase 2 — Backend application and HTTP (≈1 h)
