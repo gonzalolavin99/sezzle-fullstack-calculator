@@ -10,8 +10,9 @@ represent every decimal exactly (for example `0.1 + 0.2`).
 ## Decision
 - Use `float64` end to end, which also matches JSON numbers.
 - Reject `NaN` and infinite inputs, and reject any operation whose result is not finite (`RESULT_OUT_OF_RANGE`).
-  Every operation returns through one shared guard (`checkResult`), which also turns `-0` into `0` so the API
-  never returns `-0`.
+  Every operation returns through one shared guard (`checkResult`): an infinite result is `RESULT_OUT_OF_RANGE`,
+  a `NaN` result means the math is undefined (`INVALID_OPERAND`, 422; not reachable with finite inputs today),
+  and `-0` becomes `0` so the API never returns `-0`.
 - The API returns the raw `float64` result; the frontend formats it for display (limited significant digits).
 - Document the precision trade-off in the README.
 

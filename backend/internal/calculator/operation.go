@@ -7,6 +7,6 @@ type Operation interface {
 	Name() string
 	// Arity is the number of operands the operation expects: 1 for sqrt, 2 for add.
 	Arity() int
-	// Apply runs the operation. Callers must pass exactly Arity() operands.
+	// Apply runs the operation. It returns ErrInvalidArity if len(operands) != Arity().
 	Apply(operands []float64) (float64, error)
 }

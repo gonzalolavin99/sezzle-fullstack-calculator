@@ -57,8 +57,8 @@ Every row must be ✅ before submitting. Claude Code updates this table as tasks
 
 | # | Requirement | Where it is satisfied | Status |
 |---|---|---|---|
-| R1 | Add, subtract, multiply, divide | `backend/internal/calculator`, UI keypad | ⬜ |
-| R2 | Power, square root, percentage (optional) | same | ⬜ |
+| R1 | Add, subtract, multiply, divide | `backend/internal/calculator`, UI keypad | ⬜ (domain done in Phase 1; UI pending) |
+| R2 | Power, square root, percentage (optional) | same | ⬜ (domain done in Phase 1; UI pending) |
 | R3 | Intuitive UI for input and results | `frontend/src/features/calculator` | ⬜ |
 | R4 | Frontend input validation and error handling | reducer + API client + error banner | ⬜ |
 | R5 | Responsive design | CSS, tested at 360px and desktop | ⬜ |

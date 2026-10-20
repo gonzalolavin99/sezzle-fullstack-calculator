@@ -50,6 +50,12 @@ func (o Percentage) Apply(operands []float64) (float64, error) {
 	if err := checkOperands(o, operands); err != nil {
 		return 0, err
 	}
-	// Divide first: a * b could overflow to Inf even when the final result fits in a float64.
-	return checkResult(operands[0] / 100 * operands[1])
+	a, b := operands[0], operands[1]
+	// Multiply first: a / 100 is rarely exact in binary, so 7% of 100 would give 7.000000000000001.
+	// Only if a * b overflows, divide first so results that fit in a float64 still succeed.
+	product := a * b
+	if math.IsInf(product, 0) {
+		return checkResult(a / 100 * b)
+	}
+	return checkResult(product / 100)
 }

@@ -19,7 +19,7 @@ var allErrors = []struct {
 	{"result out of range", ErrResultOutOfRange},
 }
 
-// The HTTP adapter maps each error to its own status code, so no error may match another.
+// The HTTP adapter maps each error to its own (code, status) pair, so no error may match another.
 func TestDomainErrorsAreDistinct(t *testing.T) {
 	for i, a := range allErrors {
 		for j, b := range allErrors {

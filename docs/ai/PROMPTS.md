@@ -157,6 +157,19 @@ explain every part of it.
 - **Review:** 100% coverage, lint clean, all run in my terminal. Chose a call in each `Apply` over a wrapper in
   the registry, so the rule is visible where each result is computed and holds without the use case.
 
+### 013 — Phase 1 review and pull request (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** "Run the code-reviewer, fix the Must fix items and open the Phase 1 PR."
+- **Output:** the reviewer found one Must fix, a real bug introduced in B4: `percentage` computed `a / 100 * b`,
+  so 7% of 100 returned `7.000000000000001` (190 inexact integer results for a in 1..100, b in 1..1000, against
+  0 with `a * b / 100`). Claude Code had chosen `a / 100 * b` to avoid overflow after checking only three inputs
+  (15% of 200, 12.5% of 80, 7% of 3) that happened to match; a first re-check also looked fine because Go folds
+  constant expressions exactly at compile time, so it re-ran the check with runtime values. Fixed test first
+  (7% of 100 and 7% of 200 failing, then passing): multiply first, and divide first only if `a * b` overflows.
+  Should fix items applied: plan table (`0^negative`, percentage rule), ADR 0004 (NaN maps to `INVALID_OPERAND`),
+  test and interface comments, R1/R2 marked "domain done, UI pending", two more power edge tests.
+- **Review:** tests, coverage (100%) and lint green in my terminal. Lesson: probe floating-point choices over a
+  range of inputs, not a few hand-picked ones.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

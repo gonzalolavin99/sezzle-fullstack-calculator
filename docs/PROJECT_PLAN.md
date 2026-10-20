@@ -139,9 +139,9 @@ one handler, one validation path, and the registry decides what exists. Trade-of
 | `subtract` | 2 | a − b | non-finite result |
 | `multiply` | 2 | a × b | non-finite result (overflow) |
 | `divide` | 2 | a ÷ b | `b == 0` → `DIVISION_BY_ZERO` |
-| `power` | 2 | aᵇ | negative base with fractional exponent → `INVALID_OPERAND`; overflow → `RESULT_OUT_OF_RANGE` |
+| `power` | 2 | aᵇ | negative base with fractional exponent → `INVALID_OPERAND`; zero to a negative exponent → `DIVISION_BY_ZERO`; overflow → `RESULT_OUT_OF_RANGE` |
 | `sqrt` | 1 | √a | `a < 0` → `INVALID_OPERAND` |
-| `percentage` | 2 | a % of b = a × b ÷ 100 | non-finite result |
+| `percentage` | 2 | a % of b = a × b ÷ 100 | non-finite result (multiplies first for exact results; divides first only if `a × b` overflows) |
 
 ### Error codes and HTTP status
 

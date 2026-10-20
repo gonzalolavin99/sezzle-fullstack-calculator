@@ -54,6 +54,8 @@ func TestAdvancedOperationsApply(t *testing.T) {
 		{"power negative base, even exponent", Power{}, []float64{-3, 2}, 9, nil},
 		{"power negative base, fractional exponent", Power{}, []float64{-8, 1.0 / 3}, 0, ErrInvalidOperand},
 		{"power zero to negative exponent", Power{}, []float64{0, -1}, 0, ErrDivisionByZero},
+		{"power negative zero to negative exponent", Power{}, []float64{math.Copysign(0, -1), -1}, 0, ErrDivisionByZero},
+		{"power negative base, huge integer exponent", Power{}, []float64{-2, 1e300}, 0, ErrResultOutOfRange},
 
 		// sqrt: √a
 		{"sqrt perfect square", Sqrt{}, []float64{144}, 12, nil},
@@ -62,8 +64,11 @@ func TestAdvancedOperationsApply(t *testing.T) {
 		{"sqrt large number", Sqrt{}, []float64{1e300}, 1e150, nil},
 		{"sqrt negative", Sqrt{}, []float64{-4}, 0, ErrInvalidOperand},
 
-		// percentage: a% of b = a / 100 * b
+		// percentage: a% of b = a * b / 100
 		{"percentage simple", Percentage{}, []float64{15, 200}, 30, nil},
+		// a / 100 * b would give 7.000000000000001 and 14.000000000000002 here.
+		{"percentage seven of one hundred", Percentage{}, []float64{7, 100}, 7, nil},
+		{"percentage seven of two hundred", Percentage{}, []float64{7, 200}, 14, nil},
 		{"percentage decimal", Percentage{}, []float64{12.5, 80}, 10, nil},
 		{"percentage of zero", Percentage{}, []float64{50, 0}, 0, nil},
 		{"percentage negative", Percentage{}, []float64{-10, 50}, -5, nil},
