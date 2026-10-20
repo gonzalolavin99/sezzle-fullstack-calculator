@@ -213,6 +213,17 @@ explain every part of it.
 - **Review:** all three backend packages at 100% coverage, lint clean. Known domain messages are returned as they
   are (for example the arity details) because they help the client and expose nothing internal.
 
+### 018 — B10: middleware (Claude Code)
+- **Prompt (summary):** "Let's go" (task B10).
+- **Output:** test first (`middleware_test.go`: chain order, request ID generated/kept/replaced, one JSON log
+  line with method, path, status, duration and request ID, panic → 500 without leaking the panic value, CORS for
+  allowed and other origins including preflight), shown failing; then `middleware.go` with `Chain`, `RequestID`
+  (client value kept only if it matches `^[A-Za-z0-9_-]{1,64}$`, to avoid log injection), `Logging` (`log/slog`),
+  `Recover` and `CORS` (local development only; nginx removes the need in Docker).
+- **Review:** tests and lint green, adapter coverage 99.2% (only `Unwrap` is not exercised). Written by hand
+  instead of adding `rs/cors` or a router package, because each piece is a few lines and the standard library is
+  preferred. Middleware is wired in B11.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

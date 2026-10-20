@@ -263,7 +263,7 @@ Estimated times are for Claude Code + Gonzalo together.
   *Learn:* `http.Handler`, `http.HandlerFunc`, routing patterns like `"POST /api/v1/calculate"`, compared with Express.
 - [x] **B8. Request decoding and validation.** Max body size, `DisallowUnknownFields`, required fields, JSON errors mapped to `INVALID_REQUEST`.
 - [x] **B9. Error mapping.** One function maps domain errors to status codes and JSON bodies (section 3 table).
-- [ ] **B10. Middleware.** Request ID, structured logging with `log/slog`, panic recovery, CORS for local dev.
+- [x] **B10. Middleware.** Request ID, structured logging with `log/slog`, panic recovery, CORS for local dev.
   *Learn:* middleware as a function that wraps a handler.
 - [ ] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
   *Learn:* `context`, goroutines and channels — just enough to understand graceful shutdown.
