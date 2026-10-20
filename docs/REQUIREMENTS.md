@@ -66,7 +66,7 @@ Every row must be ✅ before submitting. Claude Code updates this table as tasks
 | R7 | Backend validation and edge cases | domain errors + handler tests | ✅ |
 | R8 | JSON responses (success and errors) | handler + OpenAPI spec | ✅ |
 | R9 | Clean, idiomatic code | golangci-lint, ESLint, Prettier in CI | ⬜ |
-| R10 | Unit tests, both layers | `go test` (backend 96.9%), Vitest (frontend 98.8%) | ✅ |
+| R10 | Unit tests, both layers | `go test` (backend 96.4%), Vitest (frontend 98.8%) | ✅ |
 | R11 | Coverage report | `make coverage`, CI artifact, README badge | ⬜ |
 | R12 | README: setup, run, API examples, design decisions | `README.md` | ⬜ |
 | R13 | Dockerfile(s) running both together | `docker compose up` | ⬜ |
