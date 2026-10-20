@@ -1,0 +1,9 @@
+# Installed and built inside the image; local copies would be wrong for Linux or stale.
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+Dockerfile
+.dockerignore

@@ -470,6 +470,23 @@ explain every part of it.
   every 10 s. In this cloud container the Docker daemon had to be started by hand (the equivalent of starting
   Docker Desktop).
 
+### 033 — D2: frontend Dockerfile and nginx (Claude Code)
+- **Prompt (summary):** same session, next plan task.
+- **Output:** `frontend/Dockerfile` (`node:24.22.0-alpine3.24` runs `npm ci` and `npm run build`; `nginx:1.30.6-alpine`,
+  the current stable branch, serves `dist/`), `frontend/.dockerignore`, and `frontend/nginx.conf.template`: `/api/`
+  is proxied to `${BACKEND_URL}` (default `http://backend:8080`, the Compose service; the official image renders
+  templates from the environment at startup, so another deployment changes an env var, not the image), hashed
+  `/assets/` cached for a year, `index.html` with `no-cache`, gzip, `nosniff` and `Referrer-Policy`, and a fallback
+  to `index.html`. Healthcheck with busybox `wget`.
+- **Review:** built and run next to the backend image on a Docker network: container `healthy`; `/api/v1/operations`
+  answered through nginx with the backend's `X-Request-Id`; `√-4` returned the 422 `INVALID_OPERAND`; the JS asset
+  came back gzipped with the long cache header. Mistake caught by checking headers per path: nginx drops server-level
+  `add_header` lines in any location that has its own, so `/` and `/assets/` had lost the security headers; they now
+  repeat them, with a comment. In this cloud container `npm ci` needs the environment's proxy and CA, so the image was
+  built from a scratch copy of the context whose Dockerfile adds only two lines for the CA (the committed Dockerfile
+  has nothing environment-specific). nginx's master process runs as root (workers do not), as in the official image;
+  an unprivileged nginx image was not added for this take-home.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
