@@ -111,6 +111,18 @@ explain every part of it.
   component, Next.js/shadcn/analytics dependencies. Claude Code could not read the v0 source through the Vercel
   connection (403 on my team scope), so I downloaded it manually.
 
+### 009 — B2: Operation interface and registry (Claude Code)
+- **Prompt (summary):** "The v0 ZIP is downloaded; continue with that or with B2."
+- **Output:** test first (`registry_test.go` with a stub operation: duplicate names rejected, lookup by name
+  including unknown/empty/case-sensitive names wrapped as `ErrUnknownOperation`, operations listed sorted by name),
+  shown failing, then `operation.go` (interface from the plan) and `registry.go` (`NewRegistry` returns an error on
+  duplicates; `Lookup`; `Operations` sorted with `slices.Sorted(maps.Keys(...))`).
+- **Review:** 100% coverage of the package, `go vet` and `golangci-lint` clean. The first run of the format check
+  failed on a misaligned one-line method in the test; fixed with `make fmt-backend`. Rejected alternative: a
+  `switch` on the operation name in the handler, which would mix domain and HTTP and grow with every operation.
+  Also noticed that the commit for entry 008 picked up a Codex copy of the harness (`AGENTS.md`, `.agents/`,
+  `.codex/`) that I had added to the folder; kept it.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
