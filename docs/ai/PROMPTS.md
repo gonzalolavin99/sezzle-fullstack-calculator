@@ -204,6 +204,15 @@ explain every part of it.
   but it reports `operands.0`; the rule now matches the real format. Coverage 97.3%, lint clean. Not added:
   a `Content-Type` requirement (stricter, but harder to try with curl, and not in the plan).
 
+### 017 — B9: error mapping (Claude Code)
+- **Prompt (summary):** "Continue" (task B9).
+- **Output:** test first (`errors_test.go`: each domain error, wrapped as the use case does, maps to its status
+  and code; an unexpected error becomes 500 `INTERNAL_ERROR` without leaking its text; end-to-end cases through the
+  handler, including `"operands": []` → `INVALID_ARITY`), shown failing; then `errors.go` with the section 3 table
+  as data (`domainErrorMapping`) and `fromDomainError`, which replaces the provisional 500 from B7.
+- **Review:** all three backend packages at 100% coverage, lint clean. Known domain messages are returned as they
+  are (for example the arity details) because they help the client and expose nothing internal.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

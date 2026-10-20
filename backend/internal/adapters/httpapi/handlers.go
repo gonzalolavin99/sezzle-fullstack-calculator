@@ -20,8 +20,8 @@ func (h *handlers) calculate(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.calc.Calculate(operation, operands)
 	if err != nil {
-		// Provisional: task B9 maps each domain error to its own status and code.
-		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "unexpected error")
+		apiErr := fromDomainError(err)
+		writeError(w, apiErr.status, apiErr.code, apiErr.message)
 		return
 	}
 
