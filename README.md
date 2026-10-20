@@ -74,6 +74,12 @@ make lint-backend       # golangci-lint run + format check
 make test-frontend      # Vitest: API client, reducer, components and user flows (MSW fakes the backend)
 make coverage-frontend  # text summary, plus frontend/coverage/index.html
 make lint-frontend      # ESLint, Prettier check and strict tsc
+
+# End-to-end smoke test (Playwright) against the full stack
+docker compose up --build -d --wait
+cd frontend && npx playwright install chromium   # once
+make e2e                # opens the app, computes 12 ÷ 4 = 3, checks the 5 ÷ 0 error
+docker compose down
 ```
 
 ## API reference

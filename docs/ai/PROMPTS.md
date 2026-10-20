@@ -498,6 +498,19 @@ explain every part of it.
   environment's proxy and Compose v5 asks for an extra `--allow` flag for a host-network build; the backend was
   built by Compose itself. The plain `docker compose up --build` on a clean machine is checked by CI (D4).
 
+### 035 — D5: Playwright smoke test (Claude Code)
+- **Prompt (summary):** same session. Done before D4 on purpose, so the CI workflow could run it from its first
+  version instead of starting with an empty e2e job.
+- **Output:** `@playwright/test` 1.64.1 (latest on npm, pinned exactly so the downloaded browser matches; justified in
+  ADR 0001), `frontend/playwright.config.ts` (base URL `http://localhost:8080` or `E2E_BASE_URL`, Chromium only, an
+  optional `PLAYWRIGHT_CHROMIUM_PATH` for an already installed browser), `frontend/e2e/calculator.spec.ts` (12 ÷ 4 = 3
+  with the keypad; 5 ÷ 0 typed on the keyboard shows the alert and the history line), `npm run e2e`, `make e2e`,
+  README steps. Vitest now includes only `src/**/*.test.*`, and `tsc` type-checks the e2e files.
+- **Review:** 2 passed against the Compose stack (nginx + Go). The code already existed, so to show the test depends
+  on the real backend the `backend` service was stopped: both tests failed waiting for the keys loaded from the API;
+  green again after restarting. 146 unit tests unchanged, lint clean. Locally the container's preinstalled Chromium
+  (an older build) ran the newer runner without problems; CI installs the matching browser.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
