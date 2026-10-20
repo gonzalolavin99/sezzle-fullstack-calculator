@@ -15,4 +15,5 @@ export const friendlyMessages: Record<ApiErrorCode, string> = {
   UNEXPECTED_RESPONSE: 'The calculator service sent an answer we could not read. Try again.',
   NETWORK_ERROR: "Can't reach the calculator service. Check that the backend is running.",
   TIMEOUT: 'The calculator service took too long to answer. Try again.',
+  ABORTED: 'The request was cancelled.',
 }

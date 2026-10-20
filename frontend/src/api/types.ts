@@ -27,6 +27,6 @@ export const SERVER_ERROR_CODES = [
 export type ServerErrorCode = (typeof SERVER_ERROR_CODES)[number]
 
 /** Errors detected by the client itself, when there is no usable answer from the backend. */
-export type ClientErrorCode = 'NETWORK_ERROR' | 'TIMEOUT' | 'UNEXPECTED_RESPONSE'
+export type ClientErrorCode = 'NETWORK_ERROR' | 'TIMEOUT' | 'UNEXPECTED_RESPONSE' | 'ABORTED'
 
 export type ApiErrorCode = ServerErrorCode | ClientErrorCode

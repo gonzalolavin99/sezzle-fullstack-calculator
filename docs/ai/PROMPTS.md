@@ -343,6 +343,22 @@ explain every part of it.
 - **Review:** all tests passed on the first run, so the pending guard was broken on purpose to confirm the tests
   catch it (8 failures), then restored. 78 frontend tests, coverage 98.4%, lint and strict `tsc` green.
 
+### 027 — F4: components and API wiring (Claude Code)
+- **Prompt (summary):** "Let's go with the next one" (task F4).
+- **Output:** a shared MSW server with a small fake backend (`src/test/server.ts`) used by every test file; the
+  client gained an optional `AbortSignal` (new code `ABORTED`, test first). Tests first for each component and an
+  integration test (`12 ÷ 4 = 3` through keypad → reducer → hook → client → fake backend), shown failing; then
+  `components/Key.tsx`, `features/calculator/`: `Display`, `Keypad` (with `±`), `AdvancedOperations` (keys built
+  from `GET /api/v1/operations`, unknown operations show their API name), `ErrorBanner`, `Tape` ("History"),
+  `ApiInspector` (native `<details>`, "Request details"), `useCalculator` (sends `state.pending`, dispatches the
+  answer, aborts on cleanup so React StrictMode's double effect does not send two requests), `useOperations` and
+  `Calculator`. Styled with the revised, plainer visual direction.
+- **Review:** 96 tests green; lint, Prettier and strict `tsc` clean. Used the app in a browser against the real Go
+  backend: `12 ÷ 4 = 3`, `5 ÷ 0` kept in the history with its message, `√144 = 12`; backend logs show exactly one
+  request per calculation; the request ID in "Request details" matches the backend log line; checked the stacked
+  layout at a narrow width and two columns in dark mode at 1280px. A first screenshot made the keys look grey;
+  computed styles showed the right colors (captured mid-transition), so nothing was changed.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

@@ -278,7 +278,7 @@ Estimated times are for Claude Code + Gonzalo together.
   The `lint` npm script must run `eslint`, `prettier --check` and `tsc --noEmit`, so `make lint` matches the docs.
 - [x] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
 - [x] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
-- [ ] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).
+- [x] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).
 - [ ] **F5. Keyboard support and accessibility.**
 - [ ] **F6. Responsive layout and dark mode.** Check at 360px and at desktop width.
 - [ ] **F7. Component tests** for main flows: `2 + 3 = 5`, divide by zero shows the error, sqrt of a negative shows the error, backend down shows a friendly message.

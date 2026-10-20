@@ -24,9 +24,18 @@ export interface ApiClientOptions {
   onExchange?: (exchange: Exchange) => void
 }
 
+export interface RequestOptions {
+  /** Lets the caller cancel, for example a React effect cleanup. Rejects with code ABORTED. */
+  signal?: AbortSignal
+}
+
 export interface ApiClient {
-  calculate(operation: string, operands: number[]): Promise<CalculateResponse>
-  listOperations(): Promise<OperationInfo[]>
+  calculate(
+    operation: string,
+    operands: number[],
+    options?: RequestOptions,
+  ): Promise<CalculateResponse>
+  listOperations(options?: RequestOptions): Promise<OperationInfo[]>
 }
 
 const DEFAULT_TIMEOUT_MS = 5000
@@ -41,10 +50,11 @@ export function createApiClient({
     path: string,
     requestBody: unknown,
     isValid: (body: unknown) => body is T,
+    { signal: callerSignal }: RequestOptions = {},
   ): Promise<T> {
     const exchange: Exchange = { method, path, requestBody, durationMs: 0 }
     const started = performance.now()
-    const signal = AbortSignal.timeout(timeoutMs)
+    const timeout = AbortSignal.timeout(timeoutMs)
     try {
       let response: Response
       try {
@@ -52,12 +62,17 @@ export function createApiClient({
           method,
           headers: requestBody === undefined ? undefined : { 'Content-Type': 'application/json' },
           body: requestBody === undefined ? undefined : JSON.stringify(requestBody),
-          signal,
+          signal: callerSignal ? AbortSignal.any([timeout, callerSignal]) : timeout,
         })
       } catch (err) {
-        // Ask the signal instead of checking `err instanceof DOMException`: the error's class
+        // Ask the signals instead of checking `err instanceof DOMException`: the error's class
         // can come from another realm (jsdom vs Node), where instanceof is false.
-        throw new ApiError(signal.aborted ? 'TIMEOUT' : 'NETWORK_ERROR', { cause: err })
+        const code = callerSignal?.aborted
+          ? 'ABORTED'
+          : timeout.aborted
+            ? 'TIMEOUT'
+            : 'NETWORK_ERROR'
+        throw new ApiError(code, { cause: err })
       }
 
       exchange.status = response.status
@@ -83,11 +98,18 @@ export function createApiClient({
   }
 
   return {
-    calculate(operation, operands) {
-      return request('POST', '/api/v1/calculate', { operation, operands }, isCalculateResponse)
+    calculate(operation, operands, options) {
+      const body = { operation, operands }
+      return request('POST', '/api/v1/calculate', body, isCalculateResponse, options)
     },
-    async listOperations() {
-      const body = await request('GET', '/api/v1/operations', undefined, isOperationsResponse)
+    async listOperations(options) {
+      const body = await request(
+        'GET',
+        '/api/v1/operations',
+        undefined,
+        isOperationsResponse,
+        options,
+      )
       return body.operations
     },
   }

@@ -1,17 +1,9 @@
 import { delay, http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { server, TEST_API as BASE } from '../test/server.ts'
 import { createApiClient, type Exchange } from './client.ts'
 import { ApiError } from './errors.ts'
 import type { ApiErrorCode } from './types.ts'
-
-// Tests run in Node, where fetch needs an absolute URL; in the browser the base URL is empty.
-const BASE = 'http://api.test'
-const server = setupServer()
-
-beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
 
 function errorBody(code: string, message: string) {
   return { error: { code, message } }
@@ -135,6 +127,23 @@ describe('calculate', () => {
       createApiClient({ baseUrl: BASE, timeoutMs: 20 }).calculate('add', [1, 2]),
     )
     expect(err.code).toBe('TIMEOUT')
+  })
+
+  it('stops when the caller aborts, for example when a React effect is cleaned up', async () => {
+    server.use(
+      http.post(`${BASE}/api/v1/calculate`, async () => {
+        await delay(500)
+        return HttpResponse.json({ operation: 'add', operands: [1, 2], result: 3 })
+      }),
+    )
+    const controller = new AbortController()
+
+    const pending = captureApiError(() =>
+      createApiClient({ baseUrl: BASE }).calculate('add', [1, 2], { signal: controller.signal }),
+    )
+    controller.abort()
+
+    expect((await pending).code).toBe('ABORTED')
   })
 })
 
