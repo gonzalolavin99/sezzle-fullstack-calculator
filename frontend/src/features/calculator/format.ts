@@ -1,8 +1,13 @@
 // Display formatting. The API returns full float64 results (ADR 0004); only the UI rounds them.
 
-const plain = new Intl.NumberFormat('en-US', { maximumSignificantDigits: 12 })
+// 15 significant digits: every number the keypad accepts (MAX_DIGITS) is shown back unchanged, and
+// float64 noise such as 0.30000000000000004 (the 17th digit) is still hidden.
+const plain = new Intl.NumberFormat('en-US', { maximumSignificantDigits: 15 })
 
-/** Formats a number for display: up to 12 significant digits, scientific notation when very large or small. */
+/**
+ * Formats a number for display: up to 15 significant digits, or scientific notation with up to 7
+ * when very large or small.
+ */
 export function formatNumber(value: number): string {
   const abs = Math.abs(value)
   if (abs !== 0 && (abs >= 1e15 || abs < 1e-6)) {
