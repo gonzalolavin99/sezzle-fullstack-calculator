@@ -86,6 +86,16 @@ explain every part of it.
   `golangci-lint fmt` so `make fmt` and `make lint` share one formatter. Left for later: entry 001 review notes and
   the Tools list placeholder (task R3).
 
+### 007 — B1: domain errors (Claude Code)
+- **Prompt (summary):** "Merge PR 1 (normal merge, not squash) and continue with B1."
+- **Output:** PR 1 merged with a merge commit; branch `feat/backend-domain`. Test first:
+  `internal/calculator/errors_test.go` (every error is distinct; `errors.Is` still finds each one after `%w`
+  wrapping), shown failing to compile, then `internal/calculator/errors.go` with six sentinel errors.
+  `INVALID_OPERAND` has two statuses in the plan (400 for NaN/Inf input, 422 for undefined math), so the domain
+  has two errors, `ErrNonFiniteOperand` and `ErrInvalidOperand`; the API contract does not change.
+- **Review:** `go test`, `go vet` and `golangci-lint` (run and fmt) all clean. Rejected alternative: a struct
+  error type carrying API codes, because it would leak HTTP concerns into the domain.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

@@ -246,7 +246,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 1 — Backend domain (≈1 h)
 
-- [ ] **B1. Domain errors.** Sentinel errors (`ErrDivisionByZero`, `ErrInvalidOperand`, `ErrResultOutOfRange`, ...) in `internal/calculator/errors.go`.
+- [x] **B1. Domain errors.** Sentinel errors (`ErrDivisionByZero`, `ErrInvalidOperand`, `ErrResultOutOfRange`, ...) in `internal/calculator/errors.go`.
   *Learn:* Go errors are values; `errors.Is` and `fmt.Errorf("%w")` vs `try/catch` in TypeScript.
 - [ ] **B2. Operation interface and registry.** Interface from section 2, registry with lookup by name and a sorted list.
   *Learn:* Go interfaces are satisfied implicitly — no `implements` keyword.
