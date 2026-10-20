@@ -77,7 +77,7 @@ make lint-frontend      # ESLint, Prettier check and strict tsc
 
 # End-to-end smoke test (Playwright) against the full stack
 docker compose up --build -d --wait
-cd frontend && npx playwright install chromium   # once
+make e2e-install        # once: Chromium and the system libraries it needs
 make e2e                # opens the app, computes 12 ÷ 4 = 3, checks the 5 ÷ 0 error
 docker compose down
 ```

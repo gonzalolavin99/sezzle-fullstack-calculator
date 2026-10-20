@@ -288,7 +288,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 - [x] **D1. Backend Dockerfile.** Multi-stage build, static binary, small non-root runtime image, healthcheck.
 - [x] **D2. Frontend Dockerfile.** Multi-stage: build with Node, serve with nginx; nginx proxies `/api` to the backend so there is no CORS in production.
-- [x] **D3. `docker-compose.yml`.** Both services, healthchecks, app on `http://localhost:8080`.
+- [ ] **D3. `docker-compose.yml`.** Both services, healthchecks, app on `http://localhost:8080`.
   *Done when:* fresh clone + `docker compose up --build` works on a clean machine.
 - [x] **D4. GitHub Actions CI.** Lint, type-check, tests with coverage for both layers, Docker build. Upload coverage reports as artifacts.
 - [x] **D5. Playwright smoke test** that runs against Compose: open the app, compute `12 / 4 = 3`, try `5 / 0` and see the error.

@@ -3,6 +3,9 @@
 server {
     listen 80;
     root /usr/share/nginx/html;
+    server_tokens off;
+    # client_max_body_size stays at nginx's 1 MB default on purpose: it is above the backend's 64 KiB limit, so an
+    # oversized calculate request reaches the backend and gets its JSON INVALID_REQUEST error, not an nginx page.
 
     # nginx gotcha: a location with its own add_header drops every add_header from this level,
     # so the locations below that set Cache-Control repeat these two lines.

@@ -5,7 +5,7 @@ WORKDIR /src
 
 # Dependencies first, so this layer stays cached while only the code changes.
 # (There are none today; the step keeps the Dockerfile right when one is added.)
-COPY go.mod ./
+COPY go.mod go.sum* ./
 RUN go mod download
 
 COPY . .
@@ -22,7 +22,7 @@ USER app
 ENV PORT=8080
 EXPOSE 8080
 # Alpine's busybox wget is enough for a liveness check; no extra packages.
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --start-interval=1s --retries=3 \
   CMD wget -qO /dev/null "http://127.0.0.1:${PORT}/healthz" || exit 1
 
 ENTRYPOINT ["/usr/local/bin/server"]

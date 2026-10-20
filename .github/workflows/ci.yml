@@ -9,15 +9,16 @@ on:
 permissions:
   contents: read
 
-# A new push to the same branch or PR cancels the run that is still going.
+# A new push to a pull request cancels its run that is still going; runs on main always finish.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
     name: Backend (lint, race tests, coverage)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -32,6 +33,7 @@ jobs:
         working-directory: .
         run: |
           make tools
+          # setup-go already puts this on PATH; kept explicit so the pinned version is found first.
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Lint and format check
         working-directory: .
@@ -52,6 +54,7 @@ jobs:
   frontend:
     name: Frontend (lint, type-check, tests, coverage)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -76,6 +79,7 @@ jobs:
     name: Docker build and end-to-end smoke test
     needs: [backend, frontend]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       # The same command a reviewer runs on a fresh clone; --wait returns once both healthchecks pass.

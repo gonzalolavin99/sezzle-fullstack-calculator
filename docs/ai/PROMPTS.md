@@ -524,9 +524,39 @@ explain every part of it.
 - **Review:** `actionlint` 1.7.12 (run in Docker, with shellcheck) reports nothing. The backend job's commands were run
   locally first: lint 0 issues, race tests green, 96.4% coverage. A first local lint run failed because an older
   golangci-lint (2.5.0) already on this container's `PATH` came first; in CI `$GITHUB_PATH` prepends, and with the
-  same order locally it passed. The frontend and e2e steps were already verified in D2, D3 and D5. Not verified yet:
+  same order locally it passed. The frontend and e2e steps ran locally in D2, D3 and D5, but the frontend image was
+  never built from the committed Dockerfile in this environment (only from a copy with two CA lines). Not verified yet:
   a real run on GitHub. The workflow only runs on pull requests and `main`, so the first run comes with the phase 4
   pull request.
+
+### 037 — Phase 4 review and fixes (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** "Do what you think is best: merge if that is best, stack if that is best." PR #4 (phase 3)
+  merged with a normal merge after checking it was clean with no open threads, so the phase 4 PR targets `main`.
+- **Output:** the reviewer ran actionlint, rebuilt the backend image, probed the stack and repeated the e2e run 10
+  times without a flake. One Must fix and four Should fix, all applied:
+  - **M1.** `make lint` failed after any `make e2e`: Playwright's `test-results/` (and `playwright-report/` in CI)
+    were not ignored by Prettier and ESLint. Reproduced, then ignored in both. Entry 035's "lint clean" was only true
+    when lint ran before e2e.
+  - **S1.** nginx resolves `backend` once; after `up` recreated the backend it could keep a stale address and answer
+    502. `depends_on` now has `restart: true`.
+  - **S2.** The README e2e steps left the shell in `frontend/`, so `make e2e` failed; there is now `make e2e-install`
+    (`playwright install --with-deps chromium`).
+  - **S3.** R13 and D3 were marked done before any clean-machine run; both are back to pending until the first CI run,
+    and entry 036 no longer says the frontend image was built from the committed Dockerfile.
+  - **S4.** `.env`, `.env.*` and `*.local` are excluded from both Docker build contexts (Vite would bake `VITE_*`
+    values from a local file into the public bundle).
+  Nice to have, applied: `server_tokens off`, a note that `BACKEND_URL` must have no trailing slash or path,
+  `COPY go.mod go.sum*`, `--start-interval=1s` on both healthchecks, 15-minute job timeouts, only pull request runs
+  are cancelled by a newer push, and clearer `make help` text. Not applied: digest pinning, an unprivileged nginx
+  image, quieter `/healthz` logs, 404 for missing static files.
+- **Review:** frontend image rebuilt from the current files (its `tsc -b` now type-checks the e2e files too); stack up
+  from scratch with `--wait` in 3 s (was 11 s); lint green with `test-results/` present; e2e 2 passed; actionlint clean.
+  S1 checked the realistic way: with a different backend image, `docker compose up -d` recreated the backend and
+  restarted nginx, and `/api` answered 200 (recreating only the backend service does not touch dependents, so my
+  first check of it proved nothing). One suggestion was wrong and was not kept: setting nginx's
+  `client_max_body_size` to the backend's 64 KiB makes nginx reject first with its own HTML 413; nginx's 1 MB
+  default already sits above the backend limit, and a 100 KB body now gets the backend's JSON `INVALID_REQUEST`
+  (checked). A comment in the template says why.
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)

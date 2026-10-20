@@ -12,10 +12,11 @@ RUN npm run build
 
 FROM nginx:1.30.6-alpine
 # Where nginx forwards /api; the Compose service name by default. Override it for another deployment.
+# scheme://host:port only: a trailing slash or path would make nginx drop the /api prefix.
 ENV BACKEND_URL=http://backend:8080
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --start-interval=1s --retries=3 \
   CMD wget -qO /dev/null http://127.0.0.1/ || exit 1

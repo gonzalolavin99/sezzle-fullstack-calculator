@@ -3,5 +3,9 @@ bin/
 coverage.out
 coverage.html
 *.test
+# Configuration comes from the container's environment, never from files in the image.
+.env
+.env.*
+*.local
 Dockerfile
 .dockerignore
