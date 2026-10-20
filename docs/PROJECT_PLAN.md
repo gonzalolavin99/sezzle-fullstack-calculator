@@ -239,7 +239,7 @@ Estimated times are for Claude Code + Gonzalo together.
 
 - [x] **S1. Create the repo and skeleton.** Folders from section 2, `.gitignore`, `.editorconfig`, MIT license, empty README with section headings.
   *Done when:* repo pushed to GitHub, first commit `chore: initial project skeleton`.
-- [ ] **S2. Install and verify toolchains.** Latest stable Go, Node LTS, Docker. Record versions in README.
+- [x] **S2. Install and verify toolchains.** Latest stable Go, Node LTS, Docker. Record versions in README.
   *Learn:* `go mod init`, what a Go module is, compared with `package.json`.
 - [ ] **S3. Makefile.** Targets `dev`, `test`, `coverage`, `lint`, `fmt`, `docker-up`.
   *Done when:* `make help` lists every target.

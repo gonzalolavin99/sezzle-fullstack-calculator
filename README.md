@@ -4,6 +4,17 @@ A calculator with a React + TypeScript frontend and a Go backend service.
 
 > Work in progress. Sections below are filled in as the project is built (see `docs/PROJECT_PLAN.md`).
 
+## Prerequisites
+
+Only Docker is needed to run the full stack. To run or develop each layer locally:
+
+| Tool | Version used | Needed for |
+|---|---|---|
+| Go | 1.27.0 | backend |
+| Node.js | 24 LTS (24.20.0) | frontend |
+| Docker | Engine 29.8.2 (Docker Desktop 4.95.0) | full stack with `docker compose` |
+| GNU Make | 4.4.1 | shortcuts in the `Makefile` (optional) |
+
 ## Quick start
 
 ## Running without Docker

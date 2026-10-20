@@ -62,7 +62,14 @@ explain every part of it.
   force-pushed while I was the only user of the repo); updated `CLAUDE.md` and the `next-task` skill so
   there are no check questions and no co-author trailers.
 - **Review:** Confirmed that the rewritten commits have the same content (empty diff) and no trailers on GitHub.
-  AI usage stays fully documented in this log and in `CLAUDE.md`.
+  AI usage stays fully documented in this log and in `CLAUDE.md`. The GitHub contributors sidebar kept showing
+  Claude for a while because of caching; the contributors API already listed only me.
+
+### 005 — S2: toolchains and Go module (Claude Code)
+- **Prompt (summary):** "Let's go with the next one" (task S2).
+- **Output:** `backend/go.mod` created with `go mod init github.com/gonzalolavin99/sezzle-fullstack-calculator/backend`
+  (Go 1.27.0, no dependencies); "Prerequisites" table in the README with the installed versions.
+- **Review:** Checked `go env` points the module and build caches to G:, and that `go vet ./...` runs (no packages yet).
 
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
