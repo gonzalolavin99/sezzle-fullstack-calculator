@@ -10,19 +10,21 @@ import type { HistoryEntry } from './reducer.ts'
 import { Tape } from './Tape.tsx'
 import { useCalculator } from './useCalculator.ts'
 import { useKeyboard } from './useKeyboard.ts'
-import { useOperations } from './useOperations.ts'
+import { useOperations, type RetryOptions } from './useOperations.ts'
 
 interface CalculatorProps {
   /** Backend origin; empty means the same origin. Tests pass an absolute URL. */
   baseUrl?: string
+  /** How loading the operations list retries; tests shorten it. */
+  operationsRetry?: RetryOptions
 }
 
-export function Calculator({ baseUrl = apiBaseUrl }: CalculatorProps) {
+export function Calculator({ baseUrl = apiBaseUrl, operationsRetry }: CalculatorProps) {
   const [exchange, setExchange] = useState<Exchange | null>(null)
   // Created once; setExchange is stable, so the client never needs to change.
   const [client] = useState(() => createApiClient({ baseUrl, onExchange: setExchange }))
   const [state, dispatch] = useCalculator(client)
-  const operations = useOperations(client)
+  const operations = useOperations(client, operationsRetry)
   useKeyboard(dispatch)
   const busy = state.pending !== null
 
@@ -49,6 +51,7 @@ export function Calculator({ baseUrl = apiBaseUrl }: CalculatorProps) {
             status={operations.status}
             operations={operations.operations}
             disabled={busy}
+            onRetry={operations.retry}
             onSelect={(op) =>
               dispatch({ type: op.arity === 1 ? 'unary' : 'binary', operation: op.name })
             }

@@ -6,7 +6,8 @@ A calculator with a React + TypeScript frontend and a Go backend service. Every 
 API; the browser never does the math. Built as a take-home assignment.
 
 **Live demo:** https://sezzle-fullstack-calculator.vercel.app (frontend on Vercel, API on Render's free tier:
-the first request after a quiet period can take about 50 seconds while the API wakes up).
+the first request after a quiet period can take about 50 seconds while the API wakes up; the app keeps retrying
+and shows "Waking up the server…" until the advanced keys load).
 
 ![The calculator: keypad, history with a failed division, and the request details panel](docs/images/calculator.png)
 
@@ -251,8 +252,7 @@ request, and its findings and fixes are in the log too. The visual draft came fr
 - **Expression mode** (`(2 + 3) × 4`) with a small parser in the domain, instead of left-to-right chaining.
 - **`/metrics`** with Prometheus counters and a latency histogram per operation.
 - **Rate limiting** middleware (token bucket) on `/api`.
-- **Frontend polish:** a "retry" link when the operations list fails to load; announce a repeated identical result
-  again; keep keyboard focus after dismissing an error; keep keys typed faster than the backend answers instead of
+- **Frontend polish:** announce a repeated identical result again; keep keyboard focus after dismissing an error; keep keys typed faster than the backend answers instead of
   dropping them while a request is pending.
 - **Deployment:** a paid instance (or a keep-warm ping) so the demo API does not sleep, and an unprivileged nginx image.
 

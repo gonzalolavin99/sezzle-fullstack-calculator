@@ -215,7 +215,7 @@ describe('Calculator', () => {
         http.get(`${TEST_API}/api/v1/operations`, () => HttpResponse.error()),
         http.post(`${TEST_API}/api/v1/calculate`, () => HttpResponse.error()),
       )
-      render(<Calculator baseUrl={TEST_API} />)
+      render(<Calculator baseUrl={TEST_API} operationsRetry={{ delayMs: 0, maxAttempts: 2 }} />)
       const user = userEvent.setup()
 
       expect(
@@ -227,6 +227,51 @@ describe('Calculator', () => {
         "Can't reach the calculator service. Check that the backend is running.",
       )
       expect(screen.getByRole('button', { name: '7' })).toBeEnabled()
+    })
+  })
+
+  // A sleeping backend (the demo's free tier takes ~50 s to wake up) must not leave the
+  // advanced keys missing for good.
+  describe('loading the operations list', () => {
+    it('keeps retrying while the server wakes up, then shows the keys', async () => {
+      let calls = 0
+      server.use(
+        http.get(`${TEST_API}/api/v1/operations`, () => {
+          calls++
+          return calls < 3
+            ? HttpResponse.error()
+            : HttpResponse.json({ operations: testOperations })
+        }),
+      )
+      render(<Calculator baseUrl={TEST_API} operationsRetry={{ delayMs: 0, maxAttempts: 5 }} />)
+
+      expect(await screen.findByRole('button', { name: 'Square root' })).toBeInTheDocument()
+      expect(calls).toBe(3)
+    })
+
+    it('shows that it is retrying instead of giving up at once', async () => {
+      server.use(http.get(`${TEST_API}/api/v1/operations`, () => HttpResponse.error()))
+      render(
+        <Calculator baseUrl={TEST_API} operationsRetry={{ delayMs: 60_000, maxAttempts: 5 }} />,
+      )
+
+      expect(await screen.findByText(/waking up the server/i)).toBeInTheDocument()
+    })
+
+    it('offers a manual retry after the automatic ones run out', async () => {
+      let up = false
+      server.use(
+        http.get(`${TEST_API}/api/v1/operations`, () =>
+          up ? HttpResponse.json({ operations: testOperations }) : HttpResponse.error(),
+        ),
+      )
+      render(<Calculator baseUrl={TEST_API} operationsRetry={{ delayMs: 0, maxAttempts: 2 }} />)
+      const user = userEvent.setup()
+
+      const retry = await screen.findByRole('button', { name: 'Retry' })
+      up = true
+      await user.click(retry)
+      expect(await screen.findByRole('button', { name: 'Square root' })).toBeInTheDocument()
     })
   })
 

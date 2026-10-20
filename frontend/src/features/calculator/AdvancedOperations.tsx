@@ -7,6 +7,7 @@ interface AdvancedOperationsProps {
   status: OperationsStatus
   operations: OperationInfo[]
   onSelect: (operation: OperationInfo) => void
+  onRetry: () => void
   disabled: boolean
 }
 
@@ -15,15 +16,30 @@ export function AdvancedOperations({
   status,
   operations,
   onSelect,
+  onRetry,
   disabled,
 }: AdvancedOperationsProps) {
   if (status === 'loading') {
     return <p className="h-10 text-sm leading-10 text-muted">Loading operations…</p>
   }
-  if (status === 'error') {
+  if (status === 'retrying') {
     return (
       <p className="h-10 text-sm leading-10 text-muted">
+        Waking up the server… the other keys appear in a moment.
+      </p>
+    )
+  }
+  if (status === 'error') {
+    return (
+      <p className="flex h-10 items-center gap-2 text-sm text-muted">
         Couldn't load more operations. The basic keys still work.
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded px-2 py-1 font-medium text-ink underline hover:no-underline focus-visible:outline-2 focus-visible:outline-ink"
+        >
+          Retry
+        </button>
       </p>
     )
   }
