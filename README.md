@@ -44,6 +44,13 @@ giving in-flight requests up to 10 seconds to finish.
 
 ## Tests and coverage
 
+```bash
+make test-backend       # go test ./...
+make coverage-backend   # per-function report, plus backend/coverage.html
+make test-race          # race detector in a Linux container (it needs cgo, so it does not run natively on Windows)
+make lint-backend       # golangci-lint run + format check
+```
+
 ## API reference
 
 ## Architecture

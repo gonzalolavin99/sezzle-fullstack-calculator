@@ -154,7 +154,8 @@ one handler, one validation path, and the registry decides what exists. Trade-of
 | Division by zero | `DIVISION_BY_ZERO` | 422 |
 | Math is undefined for these values | `INVALID_OPERAND` | 422 |
 | Result overflows `float64` | `RESULT_OUT_OF_RANGE` | 422 |
-| Wrong method | — | 405 |
+| Wrong method | `METHOD_NOT_ALLOWED` | 405 (with `Allow` header) |
+| Unknown path | `NOT_FOUND` | 404 |
 | Unexpected failure | `INTERNAL_ERROR` | 500 (no internals leaked) |
 
 ### Numbers
@@ -267,7 +268,7 @@ Estimated times are for Claude Code + Gonzalo together.
   *Learn:* middleware as a function that wraps a handler.
 - [x] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
   *Learn:* `context`, goroutines and channels — just enough to understand graceful shutdown.
-- [ ] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
+- [x] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
   *Done when:* backend coverage ≥ 85%, `go test -race ./...` clean (runs in CI on Linux).
 - [ ] **B13. OpenAPI spec** in `backend/api/openapi.yaml` matching the real behavior.
 

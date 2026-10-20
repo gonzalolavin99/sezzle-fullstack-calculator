@@ -56,6 +56,7 @@ make help         # list every target
 make tools        # install golangci-lint (pinned version)
 make dev          # backend + frontend in watch mode
 make test         # all tests
+make test-race    # backend race detector in a Linux container (Docker)
 make coverage     # coverage reports for both layers
 make lint         # golangci-lint + eslint + prettier check
 docker compose up --build   # full stack on http://localhost:8080

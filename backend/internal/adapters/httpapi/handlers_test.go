@@ -79,19 +79,62 @@ func TestRoutes(t *testing.T) {
 	}
 }
 
-// The standard library router answers 405 with an Allow header when the path exists
-// but the method does not match.
-func TestWrongMethodIsRejected(t *testing.T) {
+// The router's own 404 and 405 responses are plain text; the API rewrites them as JSON
+// so every response has the same shape. 405 keeps its Allow header.
+func TestRouterErrorsAreJSON(t *testing.T) {
 	handler := newTestHandler(t)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/calculate", nil)
+	tests := []struct {
+		name       string
+		method     string
+		path       string
+		wantStatus int
+		wantBody   string
+		wantAllow  string
+	}{
+		{
+			name: "wrong method", method: http.MethodGet, path: "/api/v1/calculate",
+			wantStatus: http.StatusMethodNotAllowed, wantAllow: "POST",
+			wantBody: `{"error":{"code":"METHOD_NOT_ALLOWED","message":"method GET is not allowed for /api/v1/calculate"}}`,
+		},
+		{
+			name: "unknown path", method: http.MethodGet, path: "/api/v1/nope",
+			wantStatus: http.StatusNotFound,
+			wantBody:   `{"error":{"code":"NOT_FOUND","message":"no route for /api/v1/nope"}}`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, httptest.NewRequest(tc.method, tc.path, nil))
+
+			if rec.Code != tc.wantStatus {
+				t.Fatalf("status = %d, want %d", rec.Code, tc.wantStatus)
+			}
+			if got := rec.Header().Get("Content-Type"); got != "application/json" {
+				t.Errorf("Content-Type = %q, want application/json", got)
+			}
+			if got := strings.TrimSpace(rec.Body.String()); got != tc.wantBody {
+				t.Errorf("body = %s\nwant   %s", got, tc.wantBody)
+			}
+			if got := rec.Header().Get("Allow"); got != tc.wantAllow {
+				t.Errorf("Allow = %q, want %q", got, tc.wantAllow)
+			}
+		})
+	}
+}
+
+// The use case adds the operation name, so the domain message must not repeat it.
+func TestArityErrorMessageNamesTheOperationOnce(t *testing.T) {
+	handler := newTestHandler(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/calculate", strings.NewReader(`{"operation":"add","operands":[1]}`))
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusMethodNotAllowed {
-		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
-	}
-	if got := rec.Header().Get("Allow"); got != "POST" {
-		t.Errorf("Allow = %q, want POST", got)
+	want := `{"error":{"code":"INVALID_ARITY","message":"add: wrong number of operands: expects 2, got 1"}}`
+	if got := strings.TrimSpace(rec.Body.String()); got != want {
+		t.Errorf("body = %s\nwant   %s", got, want)
 	}
 }

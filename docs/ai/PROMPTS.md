@@ -239,6 +239,19 @@ explain every part of it.
   line per request with its request ID, and stopped it with Ctrl+C ("shutting down" → "server stopped"). Found:
   the 405 (and 404) bodies are plain text from the router, not JSON; to fix in B12.
 
+### 020 — B12: handler tests and fixes from the live run (Claude Code)
+- **Prompt (summary):** "Fix it and let's continue" (the plain-text 404/405 and the duplicated operation name).
+- **Output:** tests first for JSON 404/405 and for the arity message, shown failing; then `jsonRouterErrors` in
+  `router.go`, which rewrites the router's plain-text 404/405 into the JSON error shape (`NOT_FOUND`,
+  `METHOD_NOT_ALLOWED`, `Allow` header kept), and the domain arity message no longer repeats the operation name.
+  Every code in the error table is now covered through the handler. New `make test-race` target runs the race
+  detector in the official `golang:1.27` image, since cgo is not available on Windows. README "Tests and
+  coverage" section and the plan's error table updated.
+- **Review:** tests and lint green; total backend coverage 96.9% (target ≥ 85%); `go test -race ./...` clean in a
+  Linux container. A catch-all `/` route was rejected for 404 because it would also catch wrong methods and hide
+  the 405. Docker Desktop had to be started first (the engine was not running). A `sed` edit to the Makefile failed
+  on an escaping error and changed nothing; redone with direct edits.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts
