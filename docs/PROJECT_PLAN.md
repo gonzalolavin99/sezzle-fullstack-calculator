@@ -254,7 +254,7 @@ Estimated times are for Claude Code + Gonzalo together.
   *Done when:* `go test ./internal/calculator/...` passes, coverage ≥ 95%.
   *Learn:* table-driven tests and `t.Run` subtests.
 - [x] **B4. Advanced operations, test first.** power, sqrt, percentage with the edge cases in section 3.
-- [ ] **B5. Result guard.** One shared check that rejects non-finite results, so no operation can return `NaN` or `Inf`.
+- [x] **B5. Result guard.** One shared check that rejects non-finite results, so no operation can return `NaN` or `Inf`.
 
 ### Phase 2 — Backend application and HTTP (≈1 h)
 

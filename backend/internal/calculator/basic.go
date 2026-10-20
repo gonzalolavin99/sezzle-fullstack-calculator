@@ -10,7 +10,7 @@ func (o Add) Apply(operands []float64) (float64, error) {
 	if err := checkOperands(o, operands); err != nil {
 		return 0, err
 	}
-	return operands[0] + operands[1], nil
+	return checkResult(operands[0] + operands[1])
 }
 
 // Subtract returns a - b.
@@ -23,7 +23,7 @@ func (o Subtract) Apply(operands []float64) (float64, error) {
 	if err := checkOperands(o, operands); err != nil {
 		return 0, err
 	}
-	return operands[0] - operands[1], nil
+	return checkResult(operands[0] - operands[1])
 }
 
 // Multiply returns a × b.
@@ -36,7 +36,7 @@ func (o Multiply) Apply(operands []float64) (float64, error) {
 	if err := checkOperands(o, operands); err != nil {
 		return 0, err
 	}
-	return operands[0] * operands[1], nil
+	return checkResult(operands[0] * operands[1])
 }
 
 // Divide returns a ÷ b. Dividing by zero (including -0) returns ErrDivisionByZero.
@@ -52,5 +52,5 @@ func (o Divide) Apply(operands []float64) (float64, error) {
 	if operands[1] == 0 {
 		return 0, ErrDivisionByZero
 	}
-	return operands[0] / operands[1], nil
+	return checkResult(operands[0] / operands[1])
 }

@@ -19,3 +19,18 @@ func checkOperands(op Operation, operands []float64) error {
 	}
 	return nil
 }
+
+// checkResult is the shared result guard every operation returns through, so no operation
+// can return Inf, NaN or -0. Inf means the result overflowed float64; NaN means the math
+// is undefined; -0 becomes 0 so clients never see "-0".
+func checkResult(x float64) (float64, error) {
+	switch {
+	case math.IsInf(x, 0):
+		return 0, ErrResultOutOfRange
+	case math.IsNaN(x):
+		return 0, ErrInvalidOperand
+	case x == 0:
+		return 0, nil
+	}
+	return x, nil
+}

@@ -147,6 +147,16 @@ explain every part of it.
 - **Review:** 100% coverage, lint clean, run in my own terminal. Overflow such as `10^400` is left to B5. Noted for
   B5: `math.Sqrt(-0)` returns `-0`, which JSON would print as `-0`; the result guard should normalize it.
 
+### 012 — B5: result guard (Claude Code)
+- **Prompt (summary):** "Go ahead" (task B5).
+- **Output:** test first (`result_guard_test.go`): every operation that can overflow returns
+  `ErrResultOutOfRange`; no operation returns `-0` (checked with `math.Signbit`, because `-0 == 0`); direct table
+  test of the guard, including `NaN` → `ErrInvalidOperand`. Implemented in two steps so the red was meaningful:
+  first `checkResult` alone (11 subtests failed at runtime, showing `+Inf, <nil>` and `-0` results), then every
+  `Apply` returns through `checkResult`. ADR 0004 now mentions the `-0` rule.
+- **Review:** 100% coverage, lint clean, all run in my terminal. Chose a call in each `Apply` over a wrapper in
+  the registry, so the rule is visible where each result is computed and holds without the use case.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

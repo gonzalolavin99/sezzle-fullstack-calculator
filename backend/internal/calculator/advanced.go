@@ -21,7 +21,7 @@ func (o Power) Apply(operands []float64) (float64, error) {
 	if base == 0 && exponent < 0 {
 		return 0, ErrDivisionByZero
 	}
-	return math.Pow(base, exponent), nil
+	return checkResult(math.Pow(base, exponent))
 }
 
 // Sqrt returns the square root of a. Negative numbers return ErrInvalidOperand.
@@ -37,7 +37,7 @@ func (o Sqrt) Apply(operands []float64) (float64, error) {
 	if operands[0] < 0 {
 		return 0, ErrInvalidOperand
 	}
-	return math.Sqrt(operands[0]), nil
+	return checkResult(math.Sqrt(operands[0]))
 }
 
 // Percentage returns a percent of b, for example 15% of 200 = 30.
@@ -51,5 +51,5 @@ func (o Percentage) Apply(operands []float64) (float64, error) {
 		return 0, err
 	}
 	// Divide first: a * b could overflow to Inf even when the final result fits in a float64.
-	return operands[0] / 100 * operands[1], nil
+	return checkResult(operands[0] / 100 * operands[1])
 }
