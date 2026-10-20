@@ -102,8 +102,9 @@ func Recover(logger *slog.Logger) Middleware {
 	}
 }
 
-// CORS lets the listed browser origins call the API. It is only needed in local development,
-// where Vite and the API run on different ports; in Docker, nginx serves both from one origin.
+// CORS lets the listed browser origins call the API. It is only needed when the frontend is
+// served from another origin, such as the optional live demo or Vite without its dev proxy;
+// the Vite proxy (development) and nginx (Docker) serve both from one origin.
 func CORS(allowedOrigins []string) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

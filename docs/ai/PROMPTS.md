@@ -283,6 +283,179 @@ explain every part of it.
   Left as known minor points: case-insensitive JSON keys (documented in the spec), `Recover` after headers were
   already written.
 
+### 023 — F1: frontend scaffold (Claude Code)
+- **Prompt (summary):** "Merge PR 3 (normal merge) and continue with F1."
+- **Output:** PR 3 merged; branch `feat/frontend`. Checked current versions on the npm registry and their peer
+  dependencies before pinning: TypeScript 7.0 is the latest, but `typescript-eslint` 8.72 supports `<6.1.0`, so
+  TypeScript is pinned to `~6.0.3`. Generated the official `create-vite` react-ts template in a scratch folder and
+  copied only its config (`tsconfig*`, `vite.config.ts`, `index.html`); added `"strict": true` (the template does
+  not enable it) and `noUncheckedIndexedAccess`. Added Tailwind 4 with the `docs/DESIGN.md` tokens as CSS variables
+  exposed through `@theme inline` (dark mode swaps the variables), Vitest + jsdom + Testing Library, ESLint flat
+  config + Prettier, npm scripts matching the Makefile, a placeholder `App` and one smoke test. ADR 0001 lists
+  each new dependency with a one-line reason; README "Running without Docker → Frontend" added.
+- **Review:** in my terminal: test passes, `make lint-frontend` (ESLint, Prettier check, strict `tsc`) and
+  `npm run build` pass, `npm install` reported 0 vulnerabilities. Checked in a browser that the tokens apply in
+  both light and dark mode. Issues met: PowerShell blocked `npm.ps1` (script execution policy), so commands use
+  `npm.cmd` (the execution policy was not changed); the copied `tsconfig.json` failed the Prettier check until
+  formatted. Kept ESLint although the new Vite template ships `oxlint`, because the plan and `CLAUDE.md` specify it.
+
+### 024 — Visual direction: make the UI look less AI-generated (Claude Code)
+- **Prompt (summary):** "The visual part looks very AI-made; make it more natural, then continue with the plan."
+- **Output:** Claude Code listed the traits that read as generated, most of them inherited from the v0 draft and
+  copied into the F1 header: tiny uppercase letter-spaced eyebrow labels ("DESK INSTRUMENT / 01", "RUNNING
+  RECORD", "CALCULATOR · READY", "END OF TAPE"), monospace for every label, hairline near-square panels with soft
+  shadows, low-contrast beige text, strikethrough error lines. `docs/DESIGN.md` gained a "Visual direction" section
+  (plain sentence-case words, monospace only for numbers, keys that look like keys, AA contrast, plain "History"
+  and "Request details"). A contrast script showed two light tokens failing WCAG AA (`muted` 3.20, `danger` 4.37);
+  both were darkened (now 4.77 and 5.42). The heading became "Calculator" (test first: the old heading failed the
+  updated test). A quick mockup of the new direction was shown in chat; the real components come in F4.
+- **Review:** frontend test and lint green. The paper-tape idea (a history list) is kept because it is useful;
+  only the decoration was removed.
+
+### 025 — F2: typed API client (Claude Code)
+- **Prompt (summary):** continued with the plan after the visual change (task F2).
+- **Output:** test first (`client.test.ts`, 16 cases with MSW 3: success for both endpoints, every server error
+  code with status, detail and request ID, an unknown code, a non-JSON proxy error page, a malformed success body,
+  network failure, timeout, and the `onExchange` report), shown failing; then `src/api/`: `types.ts` (from the
+  OpenAPI spec), `errors.ts` (`ApiError` with a friendly `message` and the server's `detail`), `messages.ts`
+  (a `Record` over every code, so a new code without a message fails to compile) and `client.ts` (`fetch` +
+  `AbortSignal.timeout`, runtime shape checks before trusting network data). Development uses a Vite proxy for
+  `/api`, so the app always calls same-origin paths, as with nginx in Docker; CORS docs updated to say it is only
+  for a different-origin deployment. `VITE_API_BASE_URL` is typed for the optional demo.
+- **Review:** 17 tests green, frontend coverage 95.9%, lint and strict `tsc` green; proxy checked live (request to
+  :5173 answered by the Go backend with its request ID). Two mistakes caught: the timeout was first detected with
+  `err instanceof DOMException`, which is false across realms (jsdom vs Node), so it now asks `signal.aborted`;
+  and the test used MSW v2's `onUnhandledRequest`, which v3 renamed to `onUnhandledFrame` (found by `tsc`, since
+  Vitest does not type-check).
+
+### 026 — F3: calculator reducer (Claude Code)
+- **Prompt (summary):** "Let's go" (task F3).
+- **Output:** tests first (`reducer.test.ts`, 39 cases; `format.test.ts`, 22 cases), shown failing; then
+  `features/calculator/reducer.ts`, a pure state machine. It never does math: `=` (and a chained operator, or a
+  unary operation such as √) produces `pending: { id, operation, operands }` for a hook to send to the backend in
+  F4, which then dispatches `resolved` or `failed`. Covered: digits, single decimal point, 15-digit limit,
+  backspace, sign toggle (`±` fills the keypad slot freed when the duplicate `%` was removed), clear, chained
+  operations, unary operations that keep a waiting binary operation, keys ignored while a request is pending,
+  late answers ignored by request ID, errors kept in a 20-entry history whose timestamp is passed in the action so
+  the reducer stays pure. `format.ts` formats results for display only (12 significant digits, scientific notation
+  for very large or small values, `0.30000000000000004` shown as `0.3`) and writes expressions (`12 ÷ 4`,
+  `15% of 200`, `√144`, and a readable fallback for an operation the UI does not know).
+- **Review:** all tests passed on the first run, so the pending guard was broken on purpose to confirm the tests
+  catch it (8 failures), then restored. 78 frontend tests, coverage 98.4%, lint and strict `tsc` green.
+
+### 027 — F4: components and API wiring (Claude Code)
+- **Prompt (summary):** "Let's go with the next one" (task F4).
+- **Output:** a shared MSW server with a small fake backend (`src/test/server.ts`) used by every test file; the
+  client gained an optional `AbortSignal` (new code `ABORTED`, test first). Tests first for each component and an
+  integration test (`12 ÷ 4 = 3` through keypad → reducer → hook → client → fake backend), shown failing; then
+  `components/Key.tsx`, `features/calculator/`: `Display`, `Keypad` (with `±`), `AdvancedOperations` (keys built
+  from `GET /api/v1/operations`, unknown operations show their API name), `ErrorBanner`, `Tape` ("History"),
+  `ApiInspector` (native `<details>`, "Request details"), `useCalculator` (sends `state.pending`, dispatches the
+  answer, aborts on cleanup so React StrictMode's double effect does not send two requests), `useOperations` and
+  `Calculator`. Styled with the revised, plainer visual direction.
+- **Review:** 96 tests green; lint, Prettier and strict `tsc` clean. Used the app in a browser against the real Go
+  backend: `12 ÷ 4 = 3`, `5 ÷ 0` kept in the history with its message, `√144 = 12`; backend logs show exactly one
+  request per calculation; the request ID in "Request details" matches the backend log line; checked the stacked
+  layout at a narrow width and two columns in dark mode at 1280px. A first screenshot made the keys look grey;
+  computed styles showed the right colors (captured mid-transition), so nothing was changed.
+
+### 028 — F5: physical keyboard and accessibility (Claude Code)
+- **Prompt (summary):** "Start F5 with /next-task, and keep going through the remaining phases if you can."
+- **Output:** tests first (`keyboard.test.ts`, 21 table-driven cases for `keyToAction`; 7 new `Calculator` tests:
+  typing `12/4{Enter}`, Backspace and Escape, Enter after a mouse click, Enter on a key reached with Tab, the
+  result announcement, `aria-busy`, named groups), shown failing; then `keyboard.ts` (a pure function from a key
+  to a reducer action: digits, `.` and `,`, `+ - * /`, `Enter` and `=`, `Backspace`, `Escape`; keys pressed with
+  Ctrl, Cmd or Alt are left to the browser) and `useKeyboard.ts` (one `keydown` listener on `window`, removed on
+  unmount). Accessibility: the display value no longer has `aria-live` (it read every digit); a hidden
+  `role="status"` region announces each result once (`12 ÷ 4 = 3`), errors stay with the banner's
+  `role="alert"`; the calculator section has `aria-busy` while a request is pending; the keypad and the advanced
+  keys are named groups, and a visible keyboard hint describes the keypad (`aria-describedby`).
+- **Review:** 124 tests green, coverage 94.9%, lint, Prettier and strict `tsc` clean. One bug found while
+  designing, before it shipped: after a mouse click the key keeps focus, so Enter would press that key again
+  instead of `=`. Fixed in `Key` (mouse-down does not move focus; Tab still does) and in the hook (Enter on a
+  focused button or `<summary>` keeps its native meaning). The fix was removed on purpose to confirm the test
+  fails without it. The busy-state test first relied on the fake backend being slower than the assertion, so it
+  now holds the response until the test releases it. Checked in Chromium (Playwright) against the real Go
+  backend: `12/4 Enter` shows 3 and is announced, `5/0=` shows the alert, click 7 × 6 then Enter gives 42, a
+  Tab-focused key shows the focus ring. The hint first showed the typographic minus `−`; changed to the `-` key
+  people actually press. Not done: `aria-keyshortcuts` on each key (`+` is the separator in its syntax, so the
+  plus key cannot be written cleanly); advanced operations have no shortcuts (their list comes from the API).
+  This session ran in a Linux cloud container, not on Windows, and pushed to the branch the environment assigns.
+
+### 029 — F6: responsive layout and dark mode (Claude Code)
+- **Prompt (summary):** same session; continued with the plan after F5.
+- **Output:** Chromium screenshots (Playwright) at 360px and 1280px, light and dark, before changing anything.
+  Dark mode was already right. Found and fixed, with a component test first where jsdom can see it:
+  1. At 360px a long result widened the page by 119px: grid items default to `min-width: auto`, so `truncate`
+     never applied. The grid children now have `min-w-0`.
+  2. The display cut long results (`1.219326…`); a calculator must not hide digits. The value now steps down
+     from `text-5xl` to `text-4xl`, `text-2xl` and `text-xl` by length (tests for each step); history lines wrap
+     (`wrap-anywhere`) instead of truncating.
+  3. A real bug from F3, seen in a screenshot: `-123456789012345` (15 digits, the keypad maximum) appeared in
+     the history as `-123,456,789,012,000`, because display formatting kept 12 significant digits. Now 15, the
+     same as `MAX_DIGITS` and within float64's exact range; `0.30000000000000004` still shows as `0.3` (tests
+     first, shown failing). Committed separately as a `fix`.
+  4. The one animation from `docs/DESIGN.md`: a new history line slides in, only under `motion-safe`.
+- **Review:** 131 tests green, lint, Prettier and strict `tsc` clean. Measured in Chromium at 360px: no
+  horizontal scroll, and the longest values (`-999,999,999,999,999`, `0.00000142857142857143`) fit. My first size
+  limits assumed 17 characters at most; after moving to 15 digits the measurement showed three values that no
+  longer fit, so a `text-xl` step was added and measured again. With `reducedMotion: 'reduce'` the computed
+  animation is `none`. A Playwright helper of mine waited for `e+268` where the real result was `e+267`; it was a
+  script mistake, not an app bug. Kept: the stacked mobile order (calculator, request details, history) as in
+  `docs/DESIGN.md`; no manual theme switch (the design asks for `prefers-color-scheme` only).
+
+### 030 — F7: component tests for the main flows (Claude Code)
+- **Prompt (summary):** same session; continued with the plan after F6.
+- **Output:** a "main flows" block in `Calculator.test.tsx`, keypad → reducer → hook → client → MSW fake
+  backend: `2 + 3 = 5`, chaining (`2 + 3 × 4 = 20`, calculated left to right), `5 ÷ 0` (alert, kept in the
+  history, dismissable), `√-9`, power and percentage from the API's operation list, reusing a history result and
+  clearing the history, and the backend down (operations list fails, then a calculation shows the "can't reach"
+  message while the keys stay usable). README lists the frontend test, coverage and lint commands.
+- **Review:** 138 tests green; frontend coverage 98.8% statements, 100% lines (target ≥ 85%); lint, Prettier and
+  strict `tsc` clean. The implementation already existed, so the tests passed at once; to prove they guard
+  something, three behaviours were broken on purpose (every error shown as a generic message; √ sent as a binary
+  operation; Dismiss doing nothing) and each broke at least one test. Mistakes caught: the first run used the
+  key's text `C` instead of its accessible name `Clear`, and pressed Clear before the result arrived (which
+  cancels the request), so the test waits for the result first. My first sabotage helper restored the whole
+  folder with `git checkout`, which also wiped the new, uncommitted test file; noticed because the test count
+  dropped from 16 to 9, the tests were re-applied and the two affected checks were redone restoring only the
+  sabotaged file. R1–R4 and R10 marked done in the traceability table.
+
+### 031 — Phase 3 review and fixes (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** same session ("keep going through the phases"): run the code-reviewer before the phase 3
+  pull request and fix what it finds.
+- **Output:** the reviewer reproduced every finding in Chromium against the Go backend. Three Must fix, all real:
+  1. **Request storm.** `useCalculator`'s default `now = () => …` was a new function on every render, so any
+     re-render while a calculation was pending (the operations list arriving, "Clear history") re-ran the effect,
+     aborted the request and sent it again; each aborted request reported to the inspector, which re-rendered
+     again. The reviewer measured 771 requests in 3 s and a display stuck on "Calculating…". The default is now a
+     module-level function. Entry 027 and the code comment blamed React StrictMode for the abort; that was wrong
+     (StrictMode re-runs effects only on mount, when nothing is pending) and the comment is corrected.
+  2. **Chaining after √ or a reused value.** `9 + √16 × 2` gave 8 and `10 + [8] × 3` gave 24: the reducer used
+     `overwrite` to mean "no second number yet", but a √ result and a reused value also set it. A separate
+     `awaitingOperand` flag now says exactly that.
+  3. **Enter after clicking a history result or "Request details"** clicked it again, because only keypad keys had
+     the F5 focus fix. Both now leave focus where it was on mouse-down.
+  Should fix, all applied: keys use `aria-disabled` instead of `disabled` while pending (a disabled button dropped
+  keyboard focus to `<body>` on every calculation); the focus ring is `ink` instead of `accent` (1.91–2.12 against
+  the light backgrounds, under the 3:1 non-text minimum; now 12.6–14.7); history buttons keep the visible
+  calculation in their accessible name ("Use result: 2 + 3 = 5", WCAG 2.5.3) instead of an `aria-label` that hid
+  it; backspace no longer leaves `-0` (the next digit made `-03`); regression tests for each. Nice to have, applied:
+  advanced keys only for arity 1 or 2; DESIGN and plan wording aligned with the code.
+- **Review:** tests first for every fix, shown failing; 146 tests green, lint, Prettier and strict `tsc` clean.
+  Re-checked in Chromium: `9 + √16 × 2 = 26`, `10 + [13] × 3 = 69` with Enter after clicking the history,
+  focus stays on `=` after a calculation, ring colour `ink`. Mistakes of mine, caught: (a) when I re-broke the
+  `now` default on purpose, the `sed` pattern no longer matched (Prettier had joined the signature onto one line),
+  so the "bug" run was really the fixed code and the storm test seemed not to catch it; traced by logging renders
+  and printing the transformed hook, then redone: with the bug the test fails with 2 requests instead of 1.
+  Lesson: check that a sabotage applied before trusting a green run. (b) A JSX space inside the hidden "Use
+  result:" span was dropped from the accessible name; the space now sits outside the span. (c) My browser script
+  typed the next keys while a request was pending; the reducer ignores keys while pending (by design, F3), so it
+  now waits for each result. Not done (documented): repeating the same calculation is not announced again (the
+  status text does not change); focus after "Dismiss" falls to `<body>`; a timeout while reading a response body
+  reports `UNEXPECTED_RESPONSE`; no retry button when the operations list fails; keys typed faster than the backend
+  answers are dropped while a request is pending.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

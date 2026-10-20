@@ -200,7 +200,7 @@ If a draft is used, log it in `docs/ai/PROMPTS.md`.
 | End-to-end | — | Playwright smoke test against Docker Compose |
 | Race detector | `go test -race` (CI on Linux; locally `make test-race` in Docker, since cgo is not available on a default Windows setup) | — |
 | Coverage | `-coverprofile` + HTML report | Vitest v8 coverage |
-| Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc --noEmit` |
+| Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc -b` (both tsconfigs set `noEmit`) |
 | CI | GitHub Actions: lint → test → coverage → docker build | same workflow |
 
 Coverage reports are uploaded as CI artifacts, and the README shows a coverage summary.
@@ -274,14 +274,14 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 3 — Frontend (≈1.5 h)
 
-- [ ] **F1. Scaffold.** Vite React TS, strict TypeScript, ESLint, Prettier, Vitest, RTL, Tailwind with design tokens from `docs/DESIGN.md`.
-  The `lint` npm script must run `eslint`, `prettier --check` and `tsc --noEmit`, so `make lint` matches the docs.
-- [ ] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
-- [ ] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
-- [ ] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).
-- [ ] **F5. Keyboard support and accessibility.**
-- [ ] **F6. Responsive layout and dark mode.** Check at 360px and at desktop width.
-- [ ] **F7. Component tests** for main flows: `2 + 3 = 5`, divide by zero shows the error, sqrt of a negative shows the error, backend down shows a friendly message.
+- [x] **F1. Scaffold.** Vite React TS, strict TypeScript, ESLint, Prettier, Vitest, RTL, Tailwind with design tokens from `docs/DESIGN.md`.
+  The `lint` npm script must run `eslint`, `prettier --check` and `tsc -b` (type-check only: `noEmit`), so `make lint` matches the docs.
+- [x] **F2. API client** in `src/api/` with types, timeout and error-code parsing. Tests with MSW.
+- [x] **F3. Calculator reducer.** Pure state machine with tests for every transition (digit, decimal point, operator, equals, clear, backspace, error, chained operations).
+- [x] **F4. Components.** Display, Keypad, AdvancedOperations (from the API), ErrorBanner, Tape, ApiInspector (see `docs/DESIGN.md`).
+- [x] **F5. Keyboard support and accessibility.** Digits, `. ,`, `+ - * /`, `Enter`/`=`, `Backspace`, `Escape`; results announced once through a `role="status"` region, errors through the banner's `role="alert"`.
+- [x] **F6. Responsive layout and dark mode.** Check at 360px and at desktop width.
+- [x] **F7. Component tests** for main flows: `2 + 3 = 5`, divide by zero shows the error, sqrt of a negative shows the error, backend down shows a friendly message.
   *Done when:* frontend logic coverage ≥ 85%.
 
 ### Phase 4 — Docker, CI and end-to-end (≈45 min)

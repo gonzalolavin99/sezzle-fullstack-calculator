@@ -57,16 +57,16 @@ Every row must be ✅ before submitting. Claude Code updates this table as tasks
 
 | # | Requirement | Where it is satisfied | Status |
 |---|---|---|---|
-| R1 | Add, subtract, multiply, divide | `backend/internal/calculator`, UI keypad | ⬜ (domain done in Phase 1; UI pending) |
-| R2 | Power, square root, percentage (optional) | same | ⬜ (domain done in Phase 1; UI pending) |
-| R3 | Intuitive UI for input and results | `frontend/src/features/calculator` | ⬜ |
-| R4 | Frontend input validation and error handling | reducer + API client + error banner | ⬜ |
-| R5 | Responsive design | CSS, tested at 360px and desktop | ⬜ |
+| R1 | Add, subtract, multiply, divide | `backend/internal/calculator`, UI keypad and keyboard | ✅ |
+| R2 | Power, square root, percentage (optional) | same; UI keys built from `GET /api/v1/operations` | ✅ |
+| R3 | Intuitive UI for input and results | `frontend/src/features/calculator` (display, keypad, keyboard, history) | ✅ |
+| R4 | Frontend input validation and error handling | reducer + API client + error banner; flow tests in `Calculator.test.tsx` | ✅ |
+| R5 | Responsive design | Tailwind layout; checked in Chromium at 360px and 1280px, light and dark | ✅ |
 | R6 | REST endpoints for operations | `backend/internal/adapters/httpapi` | ✅ |
 | R7 | Backend validation and edge cases | domain errors + handler tests | ✅ |
 | R8 | JSON responses (success and errors) | handler + OpenAPI spec | ✅ |
 | R9 | Clean, idiomatic code | golangci-lint, ESLint, Prettier in CI | ⬜ |
-| R10 | Unit tests, both layers | `go test`, Vitest | ⬜ |
+| R10 | Unit tests, both layers | `go test` (backend 96.4%), Vitest (frontend 98.8%) | ✅ |
 | R11 | Coverage report | `make coverage`, CI artifact, README badge | ⬜ |
 | R12 | README: setup, run, API examples, design decisions | `README.md` | ⬜ |
 | R13 | Dockerfile(s) running both together | `docker compose up` | ⬜ |
