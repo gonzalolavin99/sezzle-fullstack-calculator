@@ -1,0 +1,236 @@
+openapi: 3.1.0
+info:
+  title: Calculator API
+  version: 1.0.0
+  description: |
+    Backend of the full-stack calculator. Every response is JSON, including errors.
+
+    Numbers are IEEE 754 doubles (`float64`). Results are returned unrounded, so `0.1 + 0.2`
+    returns `0.30000000000000004`; the frontend formats them for display (see ADR 0004).
+    Results are always finite, and `-0` is returned as `0`.
+
+    Every response carries an `X-Request-ID` header. A client may send its own
+    (1–64 characters from `A-Z a-z 0-9 _ -`); otherwise the server generates one.
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8080
+    description: Local backend (make dev-backend) or the full stack (docker compose)
+
+paths:
+  /api/v1/calculate:
+    post:
+      summary: Run one operation
+      operationId: calculate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculateRequest'
+            examples:
+              divide:
+                value: { operation: divide, operands: [10, 4] }
+              sqrt:
+                value: { operation: sqrt, operands: [144] }
+      responses:
+        '200':
+          description: The result of the operation.
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculateResponse'
+              example: { operation: divide, operands: [10, 4], result: 2.5 }
+        '400':
+          description: |
+            The request is invalid:
+            - `INVALID_REQUEST`: body is not one JSON object, has unknown fields, is larger than 64 KiB,
+              or is missing `operation` or `operands`.
+            - `UNKNOWN_OPERATION`: no operation with that name (see `GET /api/v1/operations`).
+            - `INVALID_ARITY`: wrong number of operands for the operation.
+            - `INVALID_OPERAND`: an operand is `null`, not a number, or does not fit in a double.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unknownOperation:
+                  value: { error: { code: UNKNOWN_OPERATION, message: 'unknown operation: "modulo"' } }
+                invalidArity:
+                  value: { error: { code: INVALID_ARITY, message: 'add: wrong number of operands: expects 2, got 1' } }
+                nullOperand:
+                  value: { error: { code: INVALID_OPERAND, message: operand 1 is null } }
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '422':
+          description: |
+            The request is well formed but the math is not possible:
+            - `DIVISION_BY_ZERO`: divisor is zero, or zero raised to a negative power.
+            - `INVALID_OPERAND`: undefined for these values (square root of a negative number,
+              negative base with a fractional exponent).
+            - `RESULT_OUT_OF_RANGE`: the result does not fit in a double (overflow).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                divisionByZero:
+                  value: { error: { code: DIVISION_BY_ZERO, message: 'divide: cannot divide by zero' } }
+                negativeSqrt:
+                  value: { error: { code: INVALID_OPERAND, message: 'sqrt: operation is undefined for these operands' } }
+                overflow:
+                  value: { error: { code: RESULT_OUT_OF_RANGE, message: 'power: result is out of range' } }
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/operations:
+    get:
+      summary: List the supported operations
+      description: Sorted by name. The frontend renders its advanced operations from this list.
+      operationId: listOperations
+      responses:
+        '200':
+          description: Supported operations and how many operands each one takes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationsResponse'
+              example:
+                operations:
+                  - { name: add, arity: 2 }
+                  - { name: divide, arity: 2 }
+                  - { name: multiply, arity: 2 }
+                  - { name: percentage, arity: 2 }
+                  - { name: power, arity: 2 }
+                  - { name: sqrt, arity: 1 }
+                  - { name: subtract, arity: 2 }
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+
+  /healthz:
+    get:
+      summary: Liveness check
+      description: Used by Docker and CI to check that the service is up.
+      operationId: health
+      responses:
+        '200':
+          description: The service is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+
+components:
+  headers:
+    RequestID:
+      description: Request ID, also written to the server log line for this request.
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' }
+
+  schemas:
+    OperationName:
+      type: string
+      enum: [add, subtract, multiply, divide, power, sqrt, percentage]
+      description: |
+        - `add` a + b · `subtract` a − b · `multiply` a × b · `divide` a ÷ b
+        - `power` a raised to b · `sqrt` square root of a (one operand)
+        - `percentage` a percent of b = a × b ÷ 100 (for example 15 and 200 give 30)
+
+    CalculateRequest:
+      type: object
+      additionalProperties: false
+      required: [operation, operands]
+      description: |
+        `operation` is any string and `operands` any length on purpose: the server validates them and
+        answers `UNKNOWN_OPERATION` or `INVALID_ARITY`, so the request schema does not reject them first.
+        Keys are matched case-insensitively and a repeated key keeps its last value (Go `encoding/json`).
+      properties:
+        operation:
+          type: string
+          description: One of the names returned by `GET /api/v1/operations`.
+          examples: [divide]
+        operands:
+          type: array
+          description: One operand for `sqrt`, two for every other operation.
+          items: { type: number, format: double }
+
+    CalculateResponse:
+      type: object
+      required: [operation, operands, result]
+      properties:
+        operation:
+          $ref: '#/components/schemas/OperationName'
+        operands:
+          type: array
+          items: { type: number, format: double }
+        result:
+          type: number
+          format: double
+          description: Always finite; never `-0`.
+
+    OperationsResponse:
+      type: object
+      required: [operations]
+      properties:
+        operations:
+          type: array
+          items:
+            type: object
+            required: [name, arity]
+            properties:
+              name: { $ref: '#/components/schemas/OperationName' }
+              arity: { type: integer, minimum: 1 }
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable, machine-readable code. Clients should branch on this, not on the message.
+              enum:
+                - INVALID_REQUEST
+                - UNKNOWN_OPERATION
+                - INVALID_ARITY
+                - INVALID_OPERAND
+                - DIVISION_BY_ZERO
+                - RESULT_OUT_OF_RANGE
+                - NOT_FOUND
+                - METHOD_NOT_ALLOWED
+                - INTERNAL_ERROR
+            message:
+              type: string
+              description: Human-readable explanation, safe to show. May change between versions.
+
+  responses:
+    MethodNotAllowed:
+      description: The path exists but not for this method. The `Allow` header lists the valid method.
+      headers:
+        Allow:
+          schema: { type: string }
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example: { error: { code: METHOD_NOT_ALLOWED, message: method GET is not allowed for /api/v1/calculate } }
+    InternalError:
+      description: Unexpected server error. Details are logged with the request ID, never returned.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example: { error: { code: INTERNAL_ERROR, message: unexpected error } }
+
+# Any unknown path returns 404 with code NOT_FOUND, for example:
+#   { "error": { "code": "NOT_FOUND", "message": "no route for /api/v1/nope" } }

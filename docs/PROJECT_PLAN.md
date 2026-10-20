@@ -154,7 +154,8 @@ one handler, one validation path, and the registry decides what exists. Trade-of
 | Division by zero | `DIVISION_BY_ZERO` | 422 |
 | Math is undefined for these values | `INVALID_OPERAND` | 422 |
 | Result overflows `float64` | `RESULT_OUT_OF_RANGE` | 422 |
-| Wrong method | — | 405 |
+| Wrong method | `METHOD_NOT_ALLOWED` | 405 (with `Allow` header) |
+| Unknown path | `NOT_FOUND` | 404 |
 | Unexpected failure | `INTERNAL_ERROR` | 500 (no internals leaked) |
 
 ### Numbers
@@ -197,7 +198,7 @@ If a draft is used, log it in `docs/ai/PROMPTS.md`.
 | Unit tests | `go test`, table-driven | Vitest + React Testing Library |
 | HTTP tests | `net/http/httptest` | MSW to mock the API |
 | End-to-end | — | Playwright smoke test against Docker Compose |
-| Race detector | `go test -race` (CI on Linux; needs cgo, not available on a default Windows setup) | — |
+| Race detector | `go test -race` (CI on Linux; locally `make test-race` in Docker, since cgo is not available on a default Windows setup) | — |
 | Coverage | `-coverprofile` + HTML report | Vitest v8 coverage |
 | Lint/format | `gofmt`, `go vet`, `golangci-lint` | ESLint, Prettier, `tsc --noEmit` |
 | CI | GitHub Actions: lint → test → coverage → docker build | same workflow |
@@ -258,18 +259,18 @@ Estimated times are for Claude Code + Gonzalo together.
 
 ### Phase 2 — Backend application and HTTP (≈1 h)
 
-- [ ] **B6. Calculate use case** in `internal/app`: validates arity, looks up the operation, runs it.
-- [ ] **B7. HTTP handlers.** `POST /api/v1/calculate`, `GET /api/v1/operations`, `GET /healthz` using the standard library router with method patterns.
+- [x] **B6. Calculate use case** in `internal/app`: looks up the operation and runs it. Arity is validated once, inside each operation (`checkOperands`); the use case tests cover it.
+- [x] **B7. HTTP handlers.** `POST /api/v1/calculate`, `GET /api/v1/operations`, `GET /healthz` using the standard library router with method patterns.
   *Learn:* `http.Handler`, `http.HandlerFunc`, routing patterns like `"POST /api/v1/calculate"`, compared with Express.
-- [ ] **B8. Request decoding and validation.** Max body size, `DisallowUnknownFields`, required fields, JSON errors mapped to `INVALID_REQUEST`.
-- [ ] **B9. Error mapping.** One function maps domain errors to status codes and JSON bodies (section 3 table).
-- [ ] **B10. Middleware.** Request ID, structured logging with `log/slog`, panic recovery, CORS for local dev.
+- [x] **B8. Request decoding and validation.** Max body size, `DisallowUnknownFields`, required fields, JSON errors mapped to `INVALID_REQUEST`.
+- [x] **B9. Error mapping.** One function maps domain errors to status codes and JSON bodies (section 3 table).
+- [x] **B10. Middleware.** Request ID, structured logging with `log/slog`, panic recovery, CORS for local dev.
   *Learn:* middleware as a function that wraps a handler.
-- [ ] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
+- [x] **B11. Server wiring.** Config from env (`PORT`, `ALLOWED_ORIGINS`, `LOG_LEVEL`), read/write timeouts, graceful shutdown on SIGTERM.
   *Learn:* `context`, goroutines and channels — just enough to understand graceful shutdown.
-- [ ] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
+- [x] **B12. Handler tests with `httptest`.** Happy paths and every error code in the table.
   *Done when:* backend coverage ≥ 85%, `go test -race ./...` clean (runs in CI on Linux).
-- [ ] **B13. OpenAPI spec** in `backend/api/openapi.yaml` matching the real behavior.
+- [x] **B13. OpenAPI spec** in `backend/api/openapi.yaml` matching the real behavior.
 
 ### Phase 3 — Frontend (≈1.5 h)
 

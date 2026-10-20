@@ -170,6 +170,119 @@ explain every part of it.
 - **Review:** tests, coverage (100%) and lint green in my terminal. Lesson: probe floating-point choices over a
   range of inputs, not a few hand-picked ones.
 
+### 014 — B6: calculate use case (Claude Code)
+- **Prompt (summary):** "Merge PR 2 (normal merge) and continue with B6."
+- **Output:** PR 2 merged with a merge commit; branch `feat/backend-http` for Phase 2. Test first
+  (`internal/app/calculate_test.go`, `internal/calculator/defaults_test.go`), shown failing in both packages, then
+  `calculator.DefaultOperations()` (the one list to extend with a new operation) and `app.Calculator` with
+  `Calculate` (lookup, apply, wrap the error with the operation name) and `Operations` (name and arity, sorted).
+- **Review:** both packages at 100% coverage, lint clean. Deviation from the plan text, noted in the plan: the
+  use case does not re-validate arity, because each operation already does it in `checkOperands`; one source of
+  truth. Tests use the real registry instead of mocks because the domain is pure and fast.
+
+### 015 — B7: HTTP handlers (Claude Code)
+- **Prompt (summary):** "Let's go" (task B7).
+- **Output:** test first (`handlers_test.go` with `httptest`: health, operations list, calculate for binary,
+  unary and decimal results, and 405 with `Allow: POST` for a wrong method), shown failing, then
+  `internal/adapters/httpapi`: `router.go` (standard library `ServeMux` with method patterns), `handlers.go` and
+  `json.go` (DTOs with struct tags, `writeJSON`, `writeError`). `GET /api/v1/operations` returns
+  `{"operations":[{"name","arity"}]}`; an object leaves room for more fields later.
+- **Review:** tests and lint green; adapter coverage 85.3% because the error branches belong to B8 (request
+  validation) and B9 (error mapping). Until B9, a domain error answers a provisional 500 `INTERNAL_ERROR`, marked in
+  a comment so it is not forgotten.
+
+### 016 — B8: request decoding and validation (Claude Code)
+- **Prompt (summary):** "Do it" (task B8).
+- **Output:** test first (`request_test.go`, 14 invalid bodies), shown failing at runtime: the B7 handler accepted
+  two JSON objects, unknown fields and oversized bodies with 200, and turned `[1, null]` into `[1, 0]`, which
+  surfaced as a division by zero. Then `request.go`: `MaxBytesReader` (64 KiB), `DisallowUnknownFields`, a check
+  for a single JSON object, required `operation` and `operands` (pointer fields tell missing/null from zero),
+  `null`/string/`1e999` operands → 400 `INVALID_OPERAND`, everything else → 400 `INVALID_REQUEST`. Added an
+  `apiError` type that B9 will reuse for domain errors.
+- **Review:** two mistakes caught by the compiler and tests: the old request struct was left in `json.go`
+  (declared twice), and Claude Code assumed `encoding/json` reports an element type error as field `operands`,
+  but it reports `operands.0`; the rule now matches the real format. Coverage 97.3%, lint clean. Not added:
+  a `Content-Type` requirement (stricter, but harder to try with curl, and not in the plan).
+
+### 017 — B9: error mapping (Claude Code)
+- **Prompt (summary):** "Continue" (task B9).
+- **Output:** test first (`errors_test.go`: each domain error, wrapped as the use case does, maps to its status
+  and code; an unexpected error becomes 500 `INTERNAL_ERROR` without leaking its text; end-to-end cases through the
+  handler, including `"operands": []` → `INVALID_ARITY`), shown failing; then `errors.go` with the section 3 table
+  as data (`domainErrorMapping`) and `fromDomainError`, which replaces the provisional 500 from B7.
+- **Review:** all three backend packages at 100% coverage, lint clean. Known domain messages are returned as they
+  are (for example the arity details) because they help the client and expose nothing internal.
+
+### 018 — B10: middleware (Claude Code)
+- **Prompt (summary):** "Let's go" (task B10).
+- **Output:** test first (`middleware_test.go`: chain order, request ID generated/kept/replaced, one JSON log
+  line with method, path, status, duration and request ID, panic → 500 without leaking the panic value, CORS for
+  allowed and other origins including preflight), shown failing; then `middleware.go` with `Chain`, `RequestID`
+  (client value kept only if it matches `^[A-Za-z0-9_-]{1,64}$`, to avoid log injection), `Logging` (`log/slog`),
+  `Recover` and `CORS` (local development only; nginx removes the need in Docker).
+- **Review:** tests and lint green, adapter coverage 99.2% (only `Unwrap` is not exercised). Written by hand
+  instead of adding `rs/cors` or a router package, because each piece is a few lines and the standard library is
+  preferred. Middleware is wired in B11.
+
+### 019 — B11: server wiring and first live run (Claude Code)
+- **Prompt (summary):** "Let's go" (task B11).
+- **Output:** test first (`platform/config_test.go`: defaults, custom values, origin list parsing, invalid port
+  and log level; `cmd/server/main_test.go`: invalid config fails, cancelling the context shuts the server down
+  cleanly), shown failing; then `platform/config.go` (`LoadConfig` takes `getenv` as a parameter),
+  `platform/logger.go` (JSON `slog`) and `cmd/server/main.go` (`main` only calls `run`; `run` wires registry →
+  use case → handler → middleware, sets server timeouts including `ReadHeaderTimeout`, and shuts down gracefully
+  on SIGINT/SIGTERM with `signal.NotifyContext`, a goroutine, a channel and `select`). README "Running without
+  Docker → Backend" section with the environment variables.
+- **Review:** all tests and lint green. Then a live run in my terminal: started the server with
+  `make dev-backend`, called `/healthz`, `/api/v1/operations` and `/api/v1/calculate` with `curl.exe`
+  (2.5, 422 `DIVISION_BY_ZERO`, 422 `INVALID_OPERAND`, 400 for a null operand, 405 for GET), checked one JSON log
+  line per request with its request ID, and stopped it with Ctrl+C ("shutting down" → "server stopped"). Found:
+  the 405 (and 404) bodies are plain text from the router, not JSON; to fix in B12.
+
+### 020 — B12: handler tests and fixes from the live run (Claude Code)
+- **Prompt (summary):** "Fix it and let's continue" (the plain-text 404/405 and the duplicated operation name).
+- **Output:** tests first for JSON 404/405 and for the arity message, shown failing; then `jsonRouterErrors` in
+  `router.go`, which rewrites the router's plain-text 404/405 into the JSON error shape (`NOT_FOUND`,
+  `METHOD_NOT_ALLOWED`, `Allow` header kept), and the domain arity message no longer repeats the operation name.
+  Every code in the error table is now covered through the handler. New `make test-race` target runs the race
+  detector in the official `golang:1.27` image, since cgo is not available on Windows. README "Tests and
+  coverage" section and the plan's error table updated.
+- **Review:** tests and lint green; total backend coverage 96.9% (target ≥ 85%); `go test -race ./...` clean in a
+  Linux container. A catch-all `/` route was rejected for 404 because it would also catch wrong methods and hide
+  the 405. Docker Desktop had to be started first (the engine was not running). A `sed` edit to the Makefile failed
+  on an escaping error and changed nothing; redone with direct edits.
+
+### 021 — B13: OpenAPI spec (Claude Code)
+- **Prompt (summary):** continued straight from B12 ("let's continue").
+- **Output:** test first (`openapi_test.go`: the spec must mention every route and every error code the adapter
+  can return, taken from `domainErrorMapping` plus the request, router and recovery codes), shown failing; then
+  `backend/api/openapi.yaml` (OpenAPI 3.1): three paths, request/response schemas, the error shape with the code
+  enum, 400/405/422/500 responses with examples copied from the live run, and notes on float behavior and
+  `X-Request-ID`. README links to it.
+- **Review:** tests and lint green. YAML syntax checked by parsing it with `gopkg.in/yaml.v3` inside a throwaway
+  `golang:1.27` container (nothing installed on my machine). Not added: code generators or a served Swagger UI
+  (new dependencies for three routes).
+
+### 022 — Phase 2 review and pull request (Claude Code + code-reviewer subagent)
+- **Prompt (summary):** "Run the code-reviewer, fix the Must fix items and open the Phase 2 PR."
+- **Output:** the reviewer probed the running server against every row of the error table and found no Must fix.
+  All five Should fix items were applied:
+  1. `run` had a race: the server goroutine could still write to the log after `run` returned, and the test
+     relied on `time.Sleep`. Now `net.Listen` runs synchronously (a busy port fails at once, the real address is
+     logged), and `run` waits for the serve goroutine after `Shutdown`. The sleep is gone.
+  2. The `ErrServerClosed` check was on `Shutdown`'s error, which never returns it; moved to `Serve`'s result.
+  3. The OpenAPI request schema used the operation enum and min/max operands, so a validating client would reject
+     the requests the spec documents as `UNKNOWN_OPERATION`/`INVALID_ARITY`; relaxed (the enum stays on responses).
+  4. R6, R7 and R8 marked done in the traceability table.
+  5. New `withMiddleware` in `main.go` with a test of the production order (panic → logged 500 with request ID,
+     CORS header kept on the error).
+  Also applied: `Access-Control-Expose-Headers: X-Request-ID`, clearer wording for non-numeric operands, a comment
+  stating the invariant behind the 404/405 rewrite, `make test-race` in the plan's quality table.
+- **Review:** tests and lint green, `make test-race` clean, `TestRun` repeated 20 times under `-race` without a
+  failure, YAML re-validated. The `Expose-Headers` test and its fix were written together, not red-first.
+  Left as known minor points: case-insensitive JSON keys (documented in the spec), `Recover` after headers were
+  already written.
+
 <!-- Template for each new entry:
 ### NNN — Short title (tool)
 - **Prompt:** exact text, or a faithful summary for long prompts

@@ -25,9 +25,36 @@ only uses commands that work in both POSIX `sh` and Windows `cmd.exe`.
 
 ## Running without Docker
 
+### Backend
+
+```bash
+make dev-backend          # or: cd backend && go run ./cmd/server
+```
+
+The API listens on `http://localhost:8080`. Configuration comes from environment variables:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PORT` | `8080` | TCP port to listen on |
+| `ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins allowed by CORS (local frontend) |
+| `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`; logs are JSON lines on stdout |
+
+Invalid values stop the server at startup with a clear message. `Ctrl+C` or `SIGTERM` shuts it down gracefully,
+giving in-flight requests up to 10 seconds to finish.
+
 ## Tests and coverage
 
+```bash
+make test-backend       # go test ./...
+make coverage-backend   # per-function report, plus backend/coverage.html
+make test-race          # race detector in a Linux container (it needs cgo, so it does not run natively on Windows)
+make lint-backend       # golangci-lint run + format check
+```
+
 ## API reference
+
+The full contract is in [`backend/api/openapi.yaml`](backend/api/openapi.yaml) (OpenAPI 3.1). A test fails if a
+route or error code used by the code is missing from it.
 
 ## Architecture
 

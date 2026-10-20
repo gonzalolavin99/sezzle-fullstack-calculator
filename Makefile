@@ -8,7 +8,7 @@ GOLANGCI_LINT_VERSION := v2.15.0
 
 .PHONY: help tools \
 	dev dev-backend dev-frontend \
-	test test-backend test-frontend \
+	test test-backend test-frontend test-race \
 	coverage coverage-backend coverage-frontend \
 	lint lint-backend lint-frontend \
 	fmt fmt-backend fmt-frontend \
@@ -21,6 +21,7 @@ Usage: make <target>
   tools       Install golangci-lint $(GOLANGCI_LINT_VERSION) into the Go bin directory
   dev         Run backend and frontend in development mode
   test        Run all unit tests (backend and frontend)
+  test-race   Run backend tests with the race detector in a Linux container (needs Docker)
   coverage    Generate coverage reports for both layers
   lint        Run golangci-lint, ESLint and Prettier checks
   fmt         Format Go and frontend code
@@ -50,9 +51,13 @@ dev-frontend:
 
 test: test-backend test-frontend
 
-# The race detector needs cgo, which is not available on a default Windows setup; CI runs it on Linux.
+# The race detector needs cgo, which is not available on a default Windows setup; CI runs it on Linux,
+# and `make test-race` runs it locally inside the official Go image.
 test-backend:
 	cd backend && go test ./...
+
+test-race:
+	docker run --rm -v "$(CURDIR)/backend:/src" -w /src golang:1.27 go test -race ./...
 
 test-frontend:
 	cd frontend && npm test

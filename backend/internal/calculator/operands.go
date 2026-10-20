@@ -10,7 +10,8 @@ import (
 // on its own, without panicking on a short slice.
 func checkOperands(op Operation, operands []float64) error {
 	if len(operands) != op.Arity() {
-		return fmt.Errorf("%w: %s expects %d, got %d", ErrInvalidArity, op.Name(), op.Arity(), len(operands))
+		// Callers add the operation name as context, so it is not repeated here.
+		return fmt.Errorf("%w: expects %d, got %d", ErrInvalidArity, op.Arity(), len(operands))
 	}
 	for i, x := range operands {
 		if math.IsNaN(x) || math.IsInf(x, 0) {
